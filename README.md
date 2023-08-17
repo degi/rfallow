@@ -2,7 +2,7 @@
 
 Is the R implementation of the original FALLOW model developed by ICRAF
 
-To run the program, type this in R:
+Run the program by typing this in R:
 
     library(shiny)
     runGitHub("rfallow", "degi")
