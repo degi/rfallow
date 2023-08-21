@@ -23,6 +23,13 @@ runRFallow <- function(params,
     return(df$value[df$field == var_name])
   }
   
+  
+  progressLoop <- function(id, list_id, desc, base_p, range_p = 15) {
+    if(is.null(progress_detail)) return()
+    p <- which(list_id == id)/length(list_id)
+    progress_detail(base_p + range_p * p, paste0(desc, ": ", round(p*100), "%" ))
+  }
+  
   #SAVING OUTPUT MAPS AND TIME SERIES
   initlc_map <- params[["initlc_map"]]
   
@@ -309,7 +316,7 @@ runRFallow <- function(params,
     extlabor_df$extlabor <- pmax(0, extlabor_df$extlabor)
     
     #####################################################################
-    if(!is.null(progress_detail)) progress_detail(5, "Calculate labor capital")
+    if(!is.null(progress_detail)) progress_detail(5, "Calculating labor capital")
     #####################################################################
     
     #TO CALCULATE TOTAL LABOR (LABOR CAPITAL)
@@ -385,6 +392,7 @@ runRFallow <- function(params,
       lc_map[lu_map == lc$lu_id & lcage_map >= lc$lctimebound.min & 
                lcage_map < lc$lctimebound.max] <- lc$lc_id
     }
+    print("calculate area")
     lccount_df <- data.frame(table(lc_map))
     names(lccount_df) <- c("lc_id", "area")
     lcarea_df <- merge(lc_df[c("lu_id", "lc_id")], lccount_df, by = "lc_id")
@@ -397,7 +405,7 @@ runRFallow <- function(params,
     # TODO: ini cuma buat output -> gak perlu dihitung sekarang
     
     #####################################################################
-    if(!is.null(progress_detail)) progress_detail(15, "Calculate subcathment area")
+    if(!is.null(progress_detail)) progress_detail(15, "Calculating subcathment area")
     #####################################################################
     
     #CALCULATING LANDCOVER AREA IN EACH SUBCATCHMENT AREA
@@ -432,7 +440,7 @@ runRFallow <- function(params,
     
     
     #####################################################################
-    if(!is.null(progress_detail)) progress_detail(20, "Calculate new plot potential")
+    if(!is.null(progress_detail)) progress_detail(20, "Calculating new plot potential")
     #####################################################################
     
     #CALCULATING AREAS OF POTENTIAL NEW PLOT FOR EACH LIVELIHOOD OPTION 
@@ -492,7 +500,7 @@ runRFallow <- function(params,
     }
     
     #####################################################################
-    if(!is.null(progress_detail)) progress_detail(25, "Calculate harvesting zone")
+    # if(!is.null(progress_detail)) progress_detail(25, "Calculating harvesting zone")
     #####################################################################
     
     #POTENTIAL HARVESTING ZONES AND AREAS FOR EACH LIVELIHOOD OPTION
@@ -504,6 +512,14 @@ runRFallow <- function(params,
     harvestingarea_df$harvestingarea <- 0
     map_ids <- as.data.frame(table(lc_map))
     for(ll_id in ll_df$ll_id) {
+      #####################################################################
+      # if(!is.null(progress_detail)) {
+      #   p <- which(ll_df$ll_id == ll_id)/length(ll_df$ll_id)
+      #   progress_detail(25 + 10 * p, 
+      #                   paste0("Calculating harvesting zone: ", round(p*100), "%" ))
+      # }
+      progressLoop(ll_id, ll_df$ll_id, "Calculating harvesting zone", 25)
+      #####################################################################
       lcids <- get_lcid_by_llid(ll_id)
       #if the map do not contain the lcids then skip 
       if(!(T %in% (lcids %in% map_ids[[1]]))) next
@@ -540,7 +556,7 @@ runRFallow <- function(params,
     soildepletion_map[soildepletion_map < 0] <- 0
     
     #####################################################################
-    if(!is.null(progress_detail)) progress_detail(30, "Calculate potential yield")
+    # if(!is.null(progress_detail)) progress_detail(30, "Calculating potential yield")
     #####################################################################
     
     #POTENTIAL YIELD
@@ -555,9 +571,10 @@ runRFallow <- function(params,
     #TODO: can be calculated once without loop?
     for(ll_id in ll_df$ll_id) {
       #####################################################################
-      if(!is.null(progress_detail)) 
-        progress_detail(30 + 20 * which(ll_df$ll_id == ll_id)/length(ll_df$ll_id), 
-                        paste("Calculate potential yield:", ll_id))
+      # if(!is.null(progress_detail)) 
+      #   progress_detail(35 + 15 * which(ll_df$ll_id == ll_id)/length(ll_df$ll_id), 
+      #                   paste("Calculate potential yield:", ll_id))
+      progressLoop(ll_id, ll_df$ll_id, "Calculating potential yield", 45)
       #####################################################################
       
       yltype_df <- yieldstat_df[!is.na(yieldstat_df$ll_id) & yieldstat_df$ll_id == ll_id,]
@@ -617,7 +634,7 @@ runRFallow <- function(params,
     yield_df$profit <- yield_df$revenue - yield_df$nonlaborcosts - yield_df$extlaborcost
   
     #####################################################################
-    if(!is.null(progress_detail)) progress_detail(50, "Calculate return to land and labor")
+    if(!is.null(progress_detail)) progress_detail(65, "Calculating return to land and labor")
     #####################################################################
     
     #CALCULATING ACTUAL RETURN TO LAND AND TO LABOR
@@ -680,7 +697,7 @@ runRFallow <- function(params,
     
     
     #####################################################################
-    if(!is.null(progress_detail)) progress_detail(55, "Calculate biomass")
+    if(!is.null(progress_detail)) progress_detail(67, "Calculating biomass")
     #####################################################################
     
     #CALCULATING ABOVEGROUND BIOMASS, FLOOR BIOMASS, AND FIRE EVENT
@@ -751,7 +768,7 @@ runRFallow <- function(params,
     zfb_map <- standardize_map(floorbiom_map)
     
     #####################################################################
-    if(!is.null(progress_detail)) progress_detail(60, "Calculate plot attactiveness")
+    # if(!is.null(progress_detail)) progress_detail(60, "Calculating plot attactiveness")
     #####################################################################
     
     #CALCULATION OF PLOT ATTRACTIVENESS
@@ -771,9 +788,10 @@ runRFallow <- function(params,
     af_ltypes <- ll_df$ll_id[ll_df$lu_group == "Tree-based system"]
     for(ll_id in ll_df$ll_id) {  
       #####################################################################
-      if(!is.null(progress_detail)) 
-        progress_detail(60 + 20 * which(ll_df$ll_id == ll_id)/length(ll_df$ll_id), 
-                        paste("Calculate plot attactiveness:", ll_id))
+      # if(!is.null(progress_detail)) 
+      #   progress_detail(60 + 20 * which(ll_df$ll_id == ll_id)/length(ll_df$ll_id), 
+      #                   paste("Calculating plot attactiveness:", ll_id))
+      progressLoop(ll_id, ll_df$ll_id, "Calculating plot attactiveness", 70)
       #####################################################################
       #TODO: loop berdasarkan critzone_map aja!
       if(ll_id > length(critzone_map_list)) next
@@ -906,7 +924,7 @@ runRFallow <- function(params,
     exparea_df$exparea <-with(exparea_df, pmin(exparealabor, expareamoney, critzonearea))
     
     #####################################################################
-    if(!is.null(progress_detail)) progress_detail(80, "Calculate expansion probability")
+    if(!is.null(progress_detail)) progress_detail(85, "Calculating expansion probability")
     #####################################################################
     
     #CALCULATION OF EXPANSION PROBABILITY. THE PLOT BECOMES A NEW PLOT IF 
@@ -933,11 +951,12 @@ runRFallow <- function(params,
       for(ll_id in newplotarea_df$ll_id) {
         
         #####################################################################
-            if(!is.null(progress_detail)) {
-              llt <- newplotarea_df$ll_id
-              progress_detail(80 + 10 * which(llt == ll_id)/length(llt), 
-                          paste("Calculate expansion probability:", ll_id))
-            }
+            # if(!is.null(progress_detail)) {
+            #   llt <- newplotarea_df$ll_id
+            #   progress_detail(80 + 10 * which(llt == ll_id)/length(llt), 
+            #               paste("Calculating expansion probability:", ll_id))
+            # }
+        progressLoop(ll_id, newplotarea_df$ll_id, "Calculating expansion probability", 85, 10)
         #####################################################################
         
         expansionprobability_map <- !area_map
@@ -980,7 +999,7 @@ runRFallow <- function(params,
     }
     
     #####################################################################
-    if(!is.null(progress_detail)) progress_detail(90, "Calculate market")
+    if(!is.null(progress_detail)) progress_detail(97, "Calculating market")
     #####################################################################
     
     #CALCULATION OF BUYING, SELLING AND SECURITY LEVEL
@@ -1090,7 +1109,7 @@ runRFallow <- function(params,
              (expland - paylandalpha)))
     
     #####################################################################
-    if(!is.null(progress_detail)) progress_detail(92, "Calculate soil fertility")
+    if(!is.null(progress_detail)) progress_detail(98, "Calculating soil fertility")
     #####################################################################
     
     #UPDATING SOIL FERTILITY
@@ -1125,7 +1144,7 @@ runRFallow <- function(params,
     lu_map <- lu_update_map
     
     #####################################################################
-    if(!is.null(progress_detail)) progress_detail(95, "Calculate forest age")
+    if(!is.null(progress_detail)) progress_detail(99, "Calculating forest age")
     #####################################################################
     
     #UPDATING THE AGE OF FOREST LANDCOVER
@@ -1164,9 +1183,7 @@ runRFallow <- function(params,
     #####################################################################
     if(!is.null(progress_detail)) progress_detail(100, "Saving the output")
     #####################################################################
-    
 
-    
     mlist <- list(
       lu_map = lu_map,
       lc_map = lc_map,
@@ -1190,12 +1207,10 @@ runRFallow <- function(params,
       
     ####### OUTPUT #############
 
-
-    olc <- lcarea_df
+    olc <- lcarea_df[c("lc_id",	"area")]
     olc$iteration <- time
     if(is.null(out_lc_df)) {
-      # print(olc)
-      out_lc_df <- olc[c("lc_id",	"lu_id", "iteration", "area")]
+      out_lc_df <- olc[c("lc_id",	"iteration", "area")]
     } else {
       out_lc_df <- bind_rows(out_lc_df, olc)
     }  
@@ -1241,31 +1256,31 @@ runRFallow <- function(params,
         totagb = totagb,
         totagc = totagc,
         firearea = firearea
-        
-        # totbuying = totbuying,
-        # totselling = totselling,
-        # totnetincome = totnetincome,
-        # totsecconsumption = totsecconsumption
       )
-      
     } else {
       v <- c(time, totsecconsumptionpercapita, totnetincomepercapita, 
              totestcost, totpop, totagb, totagc, firearea)
-             
-             # totbuying, totselling, totnetincome, totsecconsumption)
-
       out_val_df <- rbind(out_val_df, v)
     } 
-
     if(!is.null(progress_detail)) progress_detail(100, "Finish iteration")
   }
   
   time_elapsed <- round(Sys.time() - start_time, 2)
-  
   if(!is.null(progress_iteration)) {
     progress_iteration(
       time, paste0("Iteration [elapsed time: ", format(time_elapsed, nsmall = 2),"]"))
   }
+  
+  lc_df <- params$landcover_df[c("lc_id", "lc_short", "lu_id", "landuse")]
+  colnames(lc_df) <- c("lc_id", "lc_short", "lu_id", "lu_group")
+  lu_df <- params$landuse_df[c("lu_id", "lu_short")]
+  lc_df <- merge(lc_df, lu_df, by = "lu_id", all.x = T)
+  out_lc_df <- merge(lc_df, out_lc_df, by = "lc_id", all.y = T)
+  out_lc_df <- out_lc_df[order(out_lc_df$lc_id, out_lc_df$iteration),]
+  
+  ll_df <- params$livelihood_df[c("ll_id", "ll_short", "lu_group")]
+  out_ll_df <- merge(ll_df, out_ll_df, by = "ll_id",  all.y = T)
+  out_ll_df <- out_ll_df[order(out_ll_df$ll_id, out_ll_df$iteration),]
   
   output <- list()
   output[["out_map"]] <- out_map
@@ -1273,8 +1288,10 @@ runRFallow <- function(params,
   output[["out_ll_df"]] <- out_ll_df
   output[["out_val_df"]] <- out_val_df
   output[["time_elapsed"]] <- time_elapsed
+  
   print("*****************")
   print("ITERATION FINISH!")
+  print(paste("Time elapsed:", time_elapsed))
   print("*****************")
   return(output)
 }
