@@ -380,7 +380,7 @@ server <- function(input, output, session) {
       } 
       df <- merge(df, m_df, by = "lc_id", all = T)
       if(all(is.na(df$color))) {
-        lu$color <- hcl.colors(nrow(df), 'Spectral')
+        df$color <- hcl.colors(nrow(df), 'Spectral')
       }
       params$landcover_df <- df
     }
@@ -472,9 +472,9 @@ server <- function(input, output, session) {
     lc_area_df <- v_inp$lc_area_df
     if(is.null(lc_area_df)) return()
     lu_df <- params$landuse_df
-    if(is.null(lu_df) | nrow(lu_df) == 0) return()
+    if(is.null(lu_df) ) return()
     lc_df <- params$landcover_df
-    if(is.null(lc_df) | nrow(lc_df) == 0) return()
+    if(is.null(lc_df)) return()
     
     lc_df <- merge(lc_df, lc_area_df, by = "lc_id", all.x = T)
     lc_df <- merge(lc_df, lu_df[c("lu_id", "lu_short")], by = "lu_id", all.x = T)
@@ -559,7 +559,7 @@ server <- function(input, output, session) {
     fpath <- input$upload_lc_setting$datapath 
     if(is.null(fpath)) return()
     df <- read.csv(fpath)
-    print(df)
+    # print(df)
     if(!checkLoadedTable(df, c("n", "c", "c", "c", "c", "c"), "Land Cover Setting")) return()
     #update the main LC table
     params$landcover_df <- generate_LU_IDS(df)
@@ -731,9 +731,7 @@ server <- function(input, output, session) {
     map_dist_df$id <- paste0("proxi_",c(1:nrow(map_dist_df)))
     map_dist_df$file <- NA
     map_dist_df$ll_id <- c(rep("", length(map_dist_label_base)), ll_dist_df$ll_id)
-    print(map_dist_df)
     map_data_df <<- map_data_df[map_data_df$group != "proximity",]
-    print(map_data_df)
     map_data_df$id <<- as.character(map_data_df$id)
     map_data_df <<- rows_append(map_data_df, map_dist_df)
     ids <- map_data_df$id
@@ -1689,8 +1687,7 @@ server <- function(input, output, session) {
       # df <- merge(params$landcover_df[c("lc_id", "lc_short", "landuse", "lu_id")], df, by = "lc_id", all.y = T)
       # df <- merge(params$landuse_df[c("lu_id", "lu_short")], df, by = "lu_id", all.y = T)
       # colnames(df)[colnames(df) == "landuse"] <- "lu_group"
-      
-      idvar <- c("lc_id", "lc_short", "lu_id", "lu_group", "lu_short")
+      idvar <- c("lc_id", "lu_id", "lc_short", "lu_group", "lu_short")
       df <- reshape(d_lc, timevar = "iteration", idvar = idvar, direction = "wide")
       names(df) <- c(idvar, iteration_label)
       
@@ -1832,10 +1829,12 @@ server <- function(input, output, session) {
     }) 
     
     output[[paste0("download_out", id)]] <- downloadHandler(
+      
       filename = function() {
         paste(paste0("data-", title, "-"), Sys.Date(), ".csv", sep="")
       },
       content = function(file) {
+        d <- data_view()
         write.csv(d, file, na = "", row.names = F)
       }
     )

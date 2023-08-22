@@ -7,6 +7,7 @@ library(fresh)
 library(shinyjs)
 library(mapview)
 library(excelR)
+library(markdown)
 
 # source("global.R")
 
@@ -78,15 +79,17 @@ ui <- dashboardPage(title = "R-Fallow",
                menuSubItem("Scenario", tabName = "inp_scenario", icon = icon("diagram-project")),
                menuSubItem("Checklist Summary", tabName = "inp_summary", icon = icon("check-to-slot"))
               ),
-      menuItem("Run Simulation", tabName = "run_tab", icon = icon("play"))
-    )
+      menuItem("Run Simulation", tabName = "run_tab", icon = icon("play")),
+      menuItem("User Manual", tabName = "manual_tab", icon = icon("book")),
+      menuItem("About", tabName = "about_tab", icon = icon("circle-info"))
+      
+    ),
+    fixedPanel(bottom = 0, left = 0, width = "200px", 
+               div(HTML("&copy; World Agroforestry (ICRAF)"), 
+                   style = "text-align:center; color:#5A6E2E"))
   ),
   
   dashboardBody(
-    # setBackgroundImage(
-    #   src = "bg.png",
-    #   shinydashboard = TRUE
-    # ),
     tags$head(tags$style(HTML("
       .drop_box {
         border-radius: 4px;
@@ -145,10 +148,11 @@ ui <- dashboardPage(title = "R-Fallow",
     tabItems(
       tabItem(tabName = "home",
               h3(HTML("<b class='h1' >F</b>orest, <b class='h1'>A</b>groforest, 
-                      <b class='h1' >L</b>ow-value <b class='h1'>L</b>
-                      and <b class='h1'>O</b>r <b class='h1' >W</b>asteland?")),
+                      <b class='h1' >L</b>ow-value <b class='h1'>L</b>and
+                      <b class='h1'>O</b>r <b class='h1' >W</b>asteland?")),
               hr(class = "green"),
-              img(src = "bg.png", width = "100%")
+              img(src = "bg.png", width = "100%"), tags$br(), tags$br(),
+              includeMarkdown("home.md")
       ),
       tabItem(tabName = "general", h2("Parameter Input Options"),
               hr(class = "green"),
@@ -292,7 +296,7 @@ ui <- dashboardPage(title = "R-Fallow",
       ),
       
       tabItem(tabName = "inp_scenario", h2("Scenario Setting"), hr(class = "green"),
-              tags$i("WIll be updated.."), uiOutput("out_scenario")),
+              tags$i("Under development..."), uiOutput("out_scenario")),
       
       tabItem(tabName = "inp_summary", 
               h2("Parameter Summary Checklist"), 
@@ -322,8 +326,13 @@ ui <- dashboardPage(title = "R-Fallow",
           uiOutput("output_selector"), 
           # hr(class = "green"),
           fluidRow(id ="add_output")
-      )
-
+      ),
+      
+      tabItem(tabName = "manual_tab", h2("User Manual"), hr(class = "green"),
+              includeMarkdown("rfallow_manual.md")),
+      
+      tabItem(tabName = "about_tab", h2("About"), hr(class = "green"),
+              includeMarkdown("about.md"))
       
     ))
 
