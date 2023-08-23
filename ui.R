@@ -149,7 +149,7 @@ ui <- dashboardPage(title = "R-Fallow",
                       <b class='h1' >L</b>ow-value <b class='h1'>L</b>and
                       <b class='h1'>O</b>r <b class='h1' >W</b>asteland?")),
               hr(class = "green"),
-              img(src = "bg.png", width = "100%"), tags$br(), tags$br(),
+              img(src = "images/front_cover.png", width = "100%"), tags$br(), tags$br(),
               includeMarkdown("home.md")
       ),
       tabItem(tabName = "general", h2("Parameter Input Options"),
