@@ -480,13 +480,17 @@ get_map_color <- function(map) {
 #####################################
 
 params_file_df <- data.frame(
-  var = c("map_data_df", "landcover_df", "landuse_df", "livelihood_df",
+  var = c("landcover_df", "landuse_df", "livelihood_df", "map_data_df",
           "bio_lc_df", "bio_ll_df", "eco_lc_df", "eco_ll_df", "soc_ll_df", 
           "demographics_df", "agentprop_df", "disaster_df", "converter_df"),
-  file = c("map_data.csv", "landcover.csv", "landuse.csv", "livelihood.csv",
+  file = c("landcover.csv", "landuse.csv", "livelihood.csv", "map_data.csv", 
            "biophysics_lc.csv", "biophysics_ll.csv", "economics_lc.csv", 
            "economics_ll.csv", "socio_ll.csv", "demographics.csv", 
-           "agentprop.csv", "disaster.csv", "converter.csv")
+           "agentprop.csv", "disaster.csv", "converter.csv"),
+  label = c("Land cover", "Land use", "Livelihood", "Spatial data", 
+            "Biophysics LC", "Biophysics LL", "Economics LC", 
+            "Economics LL", "Socio-Cultural", "Demography", 
+            "Farmer learning", "Disaster", "Converter")
 )
 
 #############################################

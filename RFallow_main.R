@@ -142,18 +142,19 @@ runRFallow <- function(params,
   }
   
   reserve_map <- get_map("reserve_map")
-  
-  not_reserve_map <- !reserve_map
-  phzonecat_map_list <- list()
-  llids <- params$livelihood_df$ll_id
-  phzonecat_map_list <- vector("list", length(llids))
-  names(phzonecat_map_list) <- llids
-  phzonecat_map_list <-lapply(phzonecat_map_list, \(i) not_reserve_map)
-  
-  phzonecat_map_list[[OFFFARM]] <- !area_map
-  phzonecat_map_list[[NTFP]] <- not_reserve_map & ntfpzone_map
-  if(!is.null(logzone_map))
-    phzonecat_map_list[[TIMBER]] <- not_reserve_map & logzone_map
+  if(!is.null(reserve_map)) {
+    not_reserve_map <- !reserve_map
+    phzonecat_map_list <- list()
+    llids <- params$livelihood_df$ll_id
+    phzonecat_map_list <- vector("list", length(llids))
+    names(phzonecat_map_list) <- llids
+    phzonecat_map_list <-lapply(phzonecat_map_list, \(i) not_reserve_map)
+    
+    phzonecat_map_list[[OFFFARM]] <- !area_map
+    phzonecat_map_list[[NTFP]] <- not_reserve_map & ntfpzone_map
+    if(!is.null(logzone_map))
+      phzonecat_map_list[[TIMBER]] <- not_reserve_map & logzone_map
+  }
   
   mdist_df <- with(params, map_data_df[map_data_df$group == "proximity",])
   

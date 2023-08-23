@@ -1,11 +1,11 @@
 library(shiny)
 library(shinydashboard)
-library(rhandsontable)
+# library(rhandsontable)
 library(shinydashboardPlus)
 library(shinyWidgets)
 library(fresh)
 library(shinyjs)
-library(mapview)
+# library(mapview)
 library(excelR)
 library(markdown)
 
@@ -32,11 +32,11 @@ mytheme <- create_theme(
 )
 
 create_scalar_tab <- function(title, table){
-  tagList(
-    h2(title), hr(class = "green"),
+  tagList(h2(title), hr(class = "green"),
     fluidRow(
       apply(par_scalar_title_df[par_scalar_title_df$table == table,], 1, function(x){
-        box(title = x["title"], collapsible = TRUE, width = as.numeric(x["width"]), collapsed = T,
+        box(title = x["title"], collapsible = TRUE,
+            width = as.numeric(x["width"]), collapsed = T,
             dropdownMenu = boxDropdown(
               icon = icon("ellipsis-vertical"),
               boxDropdownItem(id = paste0("load_", x["id"]), 
@@ -57,33 +57,31 @@ ui <- dashboardPage(title = "R-Fallow",
 
   dashboardHeader( 
     title = tagList(
-      span(class = "logo-lg", HTML("<b style='color:#FFF;background:#000;border-radius:20px;'>&nbsp;R&nbsp;</b>FALLOW Model")), 
+      span(class = "logo-lg", 
+           HTML("<b style='color:#FFF;background:#000;border-radius:20px;'>
+                &nbsp;R&nbsp;</b>FALLOW Model")),
       img(src = "rfallow_icon.svg", style = "width: 20px")
-    )
-  ),
+  )),
   
   dashboardSidebar(minified = TRUE, 
     sidebarMenu(
       id = "sidemenu",
       menuItem("Home", tabName = "home", icon = icon("home")),
       menuItem("Input Parameters", tabName = "parameters", icon = icon("sliders"), 
-               menuSubItem("Initial Input", tabName = "general", icon = icon("wrench")),
-               menuSubItem("Land Cover", tabName = "inp_landcover", icon = icon("layer-group")),
-               menuSubItem("Spatial Data", tabName = "inp_spatial", icon = icon("earth-asia")),
-               menuSubItem("Biophysics by Land Cover", tabName = "inp_biophysic_lc", icon = icon("seedling")),
-               menuSubItem("Biophysics by Livelihood", tabName = "inp_biophysic_ll", icon = icon("seedling")),
-               menuSubItem("Economics by Land Cover", tabName = "inp_economic_lc", icon = icon("coins")),
-               menuSubItem("Economics by Livelihood", tabName = "inp_economic_ll", icon = icon("coins")),
-               menuSubItem("Socio-Cultural", tabName = "inp_socio_ll", icon = icon("users")),
-               menuSubItem("Others", tabName = "inp_other", icon = icon("landmark")),
-               menuSubItem("Scenario", tabName = "inp_scenario", icon = icon("diagram-project")),
-               menuSubItem("Checklist Summary", tabName = "inp_summary", icon = icon("check-to-slot"))
-              ),
+         menuSubItem("Initial Input", tabName = "general", icon = icon("wrench")),
+         menuSubItem("Land Cover", tabName = "inp_landcover", icon = icon("layer-group")),
+         menuSubItem("Spatial Data", tabName = "inp_spatial", icon = icon("earth-asia")),
+         menuSubItem("Biophysics by Land Cover", tabName = "inp_biophysic_lc", icon = icon("seedling")),
+         menuSubItem("Biophysics by Livelihood", tabName = "inp_biophysic_ll", icon = icon("seedling")),
+         menuSubItem("Economics by Land Cover", tabName = "inp_economic_lc", icon = icon("coins")),
+         menuSubItem("Economics by Livelihood", tabName = "inp_economic_ll", icon = icon("coins")),
+         menuSubItem("Socio-Cultural", tabName = "inp_socio_ll", icon = icon("users")),
+         menuSubItem("Others", tabName = "inp_other", icon = icon("landmark")),
+         menuSubItem("Scenario", tabName = "inp_scenario", icon = icon("diagram-project")),
+         menuSubItem("Checklist Summary", tabName = "inp_summary", icon = icon("check-to-slot"))),
       menuItem("Run Simulation", tabName = "run_tab", icon = icon("play")),
       menuItem("User Manual", tabName = "manual_tab", icon = icon("book")),
-      menuItem("About", tabName = "about_tab", icon = icon("circle-info"))
-      
-    ),
+      menuItem("About", tabName = "about_tab", icon = icon("circle-info"))),
     fixedPanel(bottom = 0, left = 0, width = "200px", 
                div(HTML("&copy; World Agroforestry (ICRAF)"), 
                    style = "text-align:center; color:#5A6E2E"))
@@ -278,13 +276,16 @@ ui <- dashboardPage(title = "R-Fallow",
       tabItem(tabName = "inp_economic_ll", do.call(create_scalar_tab, tab_scalar_df[4,])),
       tabItem(tabName = "inp_socio_ll", do.call(create_scalar_tab, tab_scalar_df[5,])),
       
-      tabItem(tabName = "inp_other", h2("Other Parameters Setting"), hr(class = "green"),
+      tabItem(tabName = "inp_other", h2("Other Parameters Setting"), 
+              hr(class = "green"),
         fluidRow(
           apply(other_inp_df, 1, function(x){
-            box(title = x["title"], collapsible = TRUE, width = as.numeric(x["width"]), collapsed = T,
+            box(title = x["title"], collapsible = TRUE, 
+                width = as.numeric(x["width"]), collapsed = T,
                 dropdownMenu = boxDropdown(
                   icon = icon("ellipsis-vertical"),
-                  boxDropdownItem(id = paste0("load_", x["id"]), paste("Load", x["title"]),
+                  boxDropdownItem(id = paste0("load_", x["id"]), 
+                                  paste("Load", x["title"]),
                                   icon = icon("folder-open")),
                   boxDropdownItem(downloadButton(paste0("download_", x["id"]),
                                                  paste("Save", x["title"])))
@@ -295,11 +296,11 @@ ui <- dashboardPage(title = "R-Fallow",
         )
       ),
       
-      tabItem(tabName = "inp_scenario", h2("Scenario Setting"), hr(class = "green"),
+      tabItem(tabName = "inp_scenario", h2("Scenario Setting"), 
+              hr(class = "green"),
               tags$i("Under development..."), uiOutput("out_scenario")),
       
-      tabItem(tabName = "inp_summary", 
-              h2("Parameter Summary Checklist"), 
+      tabItem(tabName = "inp_summary", h2("Parameter Checklist Summary"), 
               hr(class = "green"),
               uiOutput("out_summary"),
               h4(icon("floppy-disk", style = "margin: 10px;"), 
@@ -312,7 +313,8 @@ ui <- dashboardPage(title = "R-Fallow",
       
       tabItem(tabName = "run_tab", h2("Run Simulation"), hr(class = "green"),
           fluidRow(
-            column(4, numericInput("simtime", "Simulation time (years)", value = 30)),
+            column(4, numericInput("simtime", "Simulation time (years)", 
+                                   value = 30)),
             column(3, disabled(
               actionBttn("run_button", "Run", icon = icon("play"),
                          style="unite", color = "danger")),
@@ -322,9 +324,7 @@ ui <- dashboardPage(title = "R-Fallow",
                       title = "Iteration (year)", total = 30),
           progressBar(id = "progress_detail", value = 0, status = "danger",
                       title = "Progress detail"),
-          # hr(class = "green"),
           uiOutput("output_selector"), 
-          # hr(class = "green"),
           fluidRow(id ="add_output")
       ),
       

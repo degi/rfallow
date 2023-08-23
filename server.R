@@ -19,7 +19,6 @@ library(shinyjqui)
 
 source("params.R")
 source("RFallow_main.R")
-# source("global.R")
 
 
 server <- function(input, output, session) {
@@ -1454,6 +1453,73 @@ server <- function(input, output, session) {
   })
   
   ###################################################################
+  ### Parameters checklist ##########################################
+  ###################################################################
+  
+  get_zero_columns <- function(df) {
+    if(is.null(df)) return(NULL)
+    cols <- which(colSums(df != 0) == 0)
+    if(length(cols) == 0) return("-")
+    colnames(df[cols])
+  }
+  
+  get_zero_vars <- function(df, f = "field", v = "value", suffix = "") {
+    if(is.null(df)) return(NULL)
+    vars <- unlist(df[f][df[v] == 0])
+    if(length(vars) == 0) return(NULL)
+    return(paste0(vars, suffix))
+  }
+  
+  get_empty_map <- function(df) {
+    if(is.null(df)) return(NULL)
+    df[is.na(df)] <- ""
+    df <- df[df$file == "", ]
+    if(nrow(df) == 0) return(NULL)
+    vars <- paste0(df$group, "-", df$label)
+    return(vars)
+  }
+  
+  output$out_summary <- renderUI({
+    p <- get_parameter()
+    plc <- c("landcover_df", "landuse_df", "livelihood_df")
+    ps <- c("bio_lc_df", "bio_ll_df", "eco_lc_df", "eco_ll_df", "soc_ll_df")
+    
+    tagList(
+      fluidRow(column(3, HTML("")), 
+               column(6, tags$b("Number of IDs"))),
+      apply(params_file_df[params_file_df$var %in% plc,], 1, function(d){
+        fluidRow(
+          column(3, tags$b(d["label"])),
+          column(6, HTML(nrow(p[[d["var"]]])))
+        )
+      }),
+      hr(),
+      fluidRow(column(3, tags$b("Spatial data")), 
+               column(6, HTML("<b>Empty maps: </b>", 
+                              paste(get_empty_map(p[["map_data_df"]]), collapse = ", ")
+                              ))),
+      hr(),
+      fluidRow(column(3, HTML("")), 
+               column(6, tags$b("Parameters with zero value"))),
+      apply(params_file_df[params_file_df$var %in% ps,], 1, function(d){
+        fluidRow(
+          column(3, tags$b(d["label"])),
+          column(6, HTML(paste(get_zero_columns(p[[d["var"]]]), collapse = ", ")))
+        )
+      }),
+      fluidRow(column(3, tags$b("Others")), 
+               column(6, HTML(
+        paste(c(get_zero_vars(p[["demographics_df"]]), 
+                get_zero_vars(p[["disaster_df"]]),
+                get_zero_vars(p[["converter_df"]]),
+                get_zero_vars(p[["agentprop_df"]], v = "value1", suffix = "_v1"),
+                get_zero_vars(p[["agentprop_df"]], v = "value2", suffix = "_v2")), 
+              collapse = ", ")
+      )))
+    )
+  })
+  
+  ###################################################################
   ### Save all the parameters #######################################
   ###################################################################
   
@@ -1541,23 +1607,6 @@ server <- function(input, output, session) {
   out_lc_label <- "Land cover area" 
   
   output$output_selector <- renderUI({ 
-    # div(class = "greenbox",
-    # fluidRow(
-    #   column(4, pickerInput(
-    #     inputId = "output_select", label = "Select output to display",
-    #     choices = list(out_lc_label,
-    #                    Total = sort(out_df$label[out_df$table == "out_val_df"]),
-    #                    Livelihood = sort(out_df$label[out_df$table != "out_val_df"]),
-    #                    Maps = sort(out_map_df$label) ))),
-    #   column(2, pickerInput(inputId = "output_width", label = "Width",
-    #                         choices = list("50%", "100%"))),
-    #   column(3, actionBttn("add_output_button", "Display", style = "unite",
-    #                        color = "warning", icon = icon("laptop-medical")),
-    #          style="margin-top: 15px;"),
-    #   column(3, div(HTML("<b>Save</b> all output data"),
-    #                 style = "padding:10px 5px; text-align:center; background-color:#385624; color:#FFF",
-    #                 downloadButton("download_output_table", "Download")))
-    # ))
     fluidRow(
       column(9,
       div(class = "greenbox",
@@ -1590,30 +1639,11 @@ server <- function(input, output, session) {
     content = function(fname) {
       setwd(tempdir())
       d_out <- v_out$fallow_output
-      
       write.csv(d_out$out_val_df, "out_val.csv", row.names = F, na = "")
-      
-      # lc_df <- params$landcover_df[c("lc_id", "lc_short")]
-      # olc <- merge(lc_df, d_out$out_lc_df, by = "lc_id", all.y = T)
-      # write.csv(olc, "out_lc.csv", row.names = F, na = "")
-      
       write.csv(d_out$out_lc_df, "out_lc.csv", row.names = F, na = "")
-      
-      # ll_df <- params$livelihood_df[c("ll_id", "ll_short")]
-      # oll <- merge(ll_df, d_out$out_ll_df, by = "ll_id",  all.y = T)
-      # write.csv(oll, "out_ll.csv", row.names = F, na = "")
-      
       write.csv(d_out$out_ll_df, "out_ll.csv", row.names = F, na = "")
-      
       files = c("out_lc.csv", "out_ll.csv", "out_val.csv")
       zip::zip(zipfile = fname, files = files)
-      
-      # apply(out_scalar_df, 1, function(d){
-      #   df <- d_out[[d["table"]]]
-      #   
-      #   write.csv(df, d["file"], row.names = F, na = "")
-      # })
-      # zip::zip(zipfile=fname, files=out_scalar_df$file)
     },
     contentType = "application/zip"
   )
@@ -1681,12 +1711,6 @@ server <- function(input, output, session) {
       iteration_label <- as.character(unique(d_lc$iteration))
       field_id <- "lc_short"
       field_id_label <- "Land cover"
-      # df <- d_lc[c("lc_id", "area", "iteration")]
-      # df <- reshape(df, timevar = "iteration", idvar = "lc_id", direction = "wide")
-      # names(df) <- c("lc_id", iteration_label)
-      # df <- merge(params$landcover_df[c("lc_id", "lc_short", "landuse", "lu_id")], df, by = "lc_id", all.y = T)
-      # df <- merge(params$landuse_df[c("lu_id", "lu_short")], df, by = "lu_id", all.y = T)
-      # colnames(df)[colnames(df) == "landuse"] <- "lu_group"
       idvar <- c("lc_id", "lu_id", "lc_short", "lu_group", "lu_short")
       df <- reshape(d_lc, timevar = "iteration", idvar = idvar, direction = "wide")
       names(df) <- c(idvar, iteration_label)
@@ -1714,11 +1738,6 @@ server <- function(input, output, session) {
         showNotification(msg_nodata(title), type = "error")
         return()
       }
-      # df <- d_ll[c("ll_id", "iteration", var)]
-      # df <- reshape(df, timevar = "iteration", idvar = "ll_id", direction = "wide")
-      # names(df) <- c("ll_id", iteration_label)
-      # df <- merge(params$livelihood_df[c("ll_id", "ll_short", "lu_group")], df, by = "ll_id", all.y = T)
-      
       idvar <- c("ll_id", "ll_short", "lu_group")
       df <- d_ll[c(idvar, "iteration", var)]
       df <- reshape(df, timevar = "iteration", idvar = idvar, direction = "wide")
@@ -1756,6 +1775,7 @@ server <- function(input, output, session) {
       if(input[[paste0("plotgroup", id)]]) {
         d <- df[c("lu_group", iteration_label)]
         d <- aggregate(d[iteration_label], by = list(d$lu_group), FUN = sum, na.rm = T)
+        colnames(d)[1] <- "lu_group"
       }
       updatePickerInput(session, inputId = filter_id, choices = d[[1]])
       data_view(d)
@@ -1769,6 +1789,12 @@ server <- function(input, output, session) {
       if(input[[paste0("plotdetailgroup", id)]]) {
         d <- df[c("lu_short", iteration_label)]
         d <- aggregate(d[iteration_label], by = list(d$lu_short), FUN = sum, na.rm = T)
+        colnames(d)[1] <- "lu_short"
+        c_df <- merge(d, params$landuse_df[c("lu_short", "lu_id")], 
+                      by = "lu_short", all.x = T)
+        c_df <- c_df[order(c_df$lu_id),]
+        c_df$lu_id <- NULL
+        d <- c_df
       }
       updatePickerInput(session, inputId = filter_id, choices = d[[1]])
       data_view(d)
@@ -1780,9 +1806,11 @@ server <- function(input, output, session) {
       if(g) {
         d <- df[c("lu_group", iteration_label)]
         d <- aggregate(d[iteration_label], by = list(d$lu_group), FUN = sum, na.rm = T)
+        colnames(d)[1] <- "lu_group"
       } else if(dg) {
         d <- df[c("lu_short", iteration_label)]
         d <- aggregate(d[iteration_label], by = list(d$lu_short), FUN = sum, na.rm = T)
+        colnames(d)[1] <- "lu_short"
       } else {
         d <- df[c(field_id, iteration_label)]
       }
@@ -1804,6 +1832,17 @@ server <- function(input, output, session) {
         d_plot <- t(dff[iteration_label])
         colnames(d_plot) <- unlist(dff[1])
         color <- color_list[1:nrow(dff)]
+        
+        idfield <- colnames(d[1])
+        if(idfield == "lc_short") {
+          c_df <- merge(d[1], params$landcover_df[c("lc_short", "color")], 
+                        by = "lc_short", all.x = T, sort = F)
+          color <- c_df$color
+        } else if(idfield == "lu_short") {
+          c_df <- merge(d[1], params$landuse_df[c("lu_short", "color")], 
+                        by = "lu_short", all.x = T, sort = F)
+          color <- c_df$color
+        }
       }
       ex <- 10^(round(log(max(d_plot), 10))-1)
       ex_f <- ""
