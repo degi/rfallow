@@ -1,6 +1,5 @@
 library(shiny)
 library(stars)
-# library(rhandsontable)
 library(shinyjs)
 library(shinydashboardPlus)
 library(shinyWidgets)
@@ -10,7 +9,6 @@ library(areaplot)
 library(mapview)
 library(leaflet)
 library(leafem)
-# library(excelR)
 library(dplyr)
 library(reshape)
 
@@ -1258,14 +1256,23 @@ server <- function(input, output, session) {
   ##################################################
   ## SCALAR INPUT ############################
   ##################################################
-
+  get_unit_label <- function(u) {
+    if(is.na(u)) return(NULL)
+    p("Unit:", u)
+  }
+  
   apply(par_scalar_title_df, 1, function(x){
     output[[paste0("out_", x["id"])]] <- renderUI({
       b_df <- params[[x["table"]]]
       if(is.null(b_df)) { 
         tags$p(lcsetting_req)
       } else {
-        excelOutput(paste0("table_", x["id"]))
+        tagList(
+          p(x["desc"]),
+          # ifelse(is.na(x["unit"]), NULL, p("Unit:", x["unit"])),
+          get_unit_label(x["unit"]),
+          excelOutput(paste0("table_", x["id"]))
+        )
       }
     })
   })
@@ -1515,7 +1522,8 @@ server <- function(input, output, session) {
                 get_zero_vars(p[["agentprop_df"]], v = "value1", suffix = "_v1"),
                 get_zero_vars(p[["agentprop_df"]], v = "value2", suffix = "_v2")), 
               collapse = ", ")
-      )))
+      ))),
+      hr()
     )
   })
   
@@ -1550,10 +1558,15 @@ server <- function(input, output, session) {
   
   get_parameter <- function() {
     run_par <- reactiveValuesToList(params)
+    ## set map input ##
     run_par$map_data_df <- map_data_df
     f <- map_data_df$file
     f <- f[!is.na(f) & f != ""]
     run_par$map_list <- run_par$map_list[f]
+    ## validation ##
+    blc <-  run_par[["bio_lc_df"]]
+    blc$lctimebound.max[is.na(blc$lctimebound.max)] <- .Machine$integer.max
+    run_par[["bio_lc_df"]] <- blc
     return(run_par)
   }
   
@@ -1607,29 +1620,27 @@ server <- function(input, output, session) {
   out_lc_label <- "Land cover area" 
   
   output$output_selector <- renderUI({ 
-    fluidRow(
-      column(9,
+
       div(class = "greenbox",
         fluidRow(
-          column(6, 
+          column(4, 
             pickerInput(
-            inputId = "output_select", label = "Output", #width = "fit",
+            inputId = "output_select", label = "Output", 
             choices = list(out_lc_label,
                            Total = sort(out_df$label[out_df$table == "out_val_df"]),
                            Livelihood = sort(out_df$label[out_df$table != "out_val_df"]),
                            Maps = sort(out_map_df$label) ))),
-          column(3, pickerInput(inputId = "output_width", label = "Width", #width = "fit",
+          column(2, pickerInput(inputId = "output_width", label = "Width", 
                                 choices = list("50%", "100%"))
           ),
-          column(3, style="margin-top: 25px;", 
+          column(2, style="margin-top: 25px;", 
                  actionButton("add_output_button", "Display", icon = icon("laptop-medical"))),
-          
-        ))),
-      column(3, div(class = "greenbox", style = "text-align: center;",
-                    HTML("<b>Save</b> output data"),
-                    downloadButton("download_output_table", "Download")))
-    )
-    
+          column(4, div(style = "text-align:center;  background:#A9D08F;
+                        padding:10px; border-radius:8px; width:140px; margin:auto;", 
+                        tags$b("Save output data"),
+                        downloadButton("download_output_table", "Download")))
+        )
+      )
   })
   
   output$download_output_table <- downloadHandler(
@@ -1662,7 +1673,10 @@ server <- function(input, output, session) {
     }
     ui_out <- NULL
     if(input$output_select %in% c(out_df$label, out_lc_label)) {
-      ui_out <- generate_output_table_box(id, input$output_select, input$output_width)
+      odf <- out_df[out_df$label == input$output_select,]
+      if(nrow(odf) == 0) odf <- list(unit = "ha", desc = "Total land cover area")
+      ui_out <- generate_output_table_box(id, input$output_select, 
+                                          input$output_width, odf$unit, odf$desc)
     } else if(input$output_select %in% out_map_df$label) {
       ui_out <- generate_output_map_box(id, input$output_select, input$output_width)
     }
@@ -1689,7 +1703,7 @@ server <- function(input, output, session) {
   #################################################################
   msg_nodata <- function(title) paste("No data on", title)
   
-  generate_output_table_box <- function(id, title, width) {
+  generate_output_table_box <- function(id, title, width, unit = "", desc = "") {
     table_id <- paste0("table_out", id)
     #prepare the table
     d_out <- v_out$fallow_output
@@ -1853,7 +1867,7 @@ server <- function(input, output, session) {
       par(mar=c(4, 4, 1, 1))
       ptype <- input[[paste0("plottype_out", id)]]
       if(ptype == "Stacked area" & !is_single_value) {
-        areaplot(d_plot, xlab = "Years", ylab = paste("Unit", ex_f), col = color, legend = T,
+        areaplot(d_plot, xlab = "Years", ylab = paste(unit, ex_f), col = color, legend = T,
                  args.legend=list(x="topleft", cex=0.8, bty = "o", ncol = 2,
                                   border = "white", bg = "#FFFFFF60", 
                                   box.lwd = 0, inset=.05))
@@ -1908,11 +1922,14 @@ server <- function(input, output, session) {
             multiple = TRUE
           )
         ),
-        tabsetPanel(
-          tabPanel("Plot", icon = icon("chart-simple"), 
-                   plotOutput(paste0("plot_out",id))),
-          tabPanel("Table", icon = icon("table-list"), 
-                   p("Unit:"), excelOutput(table_id))
+        tagList(
+          p(desc),
+          tabsetPanel(
+            tabPanel("Plot", icon = icon("chart-simple"), 
+                     plotOutput(paste0("plot_out",id))),
+            tabPanel("Table", icon = icon("table-list"), 
+                     p("Unit:", unit), excelOutput(table_id))
+          )
         )
     )
   }

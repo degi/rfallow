@@ -20,9 +20,10 @@ mytheme <- create_theme(
     dark_hover_bg = "#A9D08F",
     dark_hover_color = "#000",
     dark_color = COLOR_DARK,
-    dark_submenu_color = "#D1EDC0",
+    dark_submenu_color = COLOR_LIGHT, #"#D1EDC0",
     dark_submenu_hover_color = "#FFF",
-    dark_submenu_bg = "#5A6E2E" 
+    dark_submenu_bg = COLOR_DARK #"#5A6E2E" 
+    
   ),
   adminlte_global(
     content_bg = "#F1FFEB",
@@ -303,9 +304,11 @@ ui <- dashboardPage(title = "R-Fallow",
       tabItem(tabName = "inp_summary", h2("Parameter Checklist Summary"), 
               hr(class = "green"),
               uiOutput("out_summary"),
-              h4(icon("floppy-disk", style = "margin: 10px;"), 
-                 "Save all parameters in zip file"),
-              downloadButton("download_params", "Download the parameters")),
+              div(class = "greenbox", style = "text-align:center;",
+                tags$b( #icon("floppy-disk"), 
+                 "Save all parameters in zip file:"),
+              downloadButton("download_params", "Download the parameters"))
+              ),
       
       ###############################################################
       ### RUN #######################################################

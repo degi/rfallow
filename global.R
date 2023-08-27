@@ -71,7 +71,7 @@ map_input_df <- data.frame(
   box_title = c("General Data", "Land Suitability", "Proximity Map"),
   box_desc = c(
     "The general spatial raster data input",
-    "The land suitability map for each land uses",
+    "Suitability map for each simulated livelihood options. (0=pixel not suitable, 1=suitable)",
     "The proximity (raster distance) to road, river, market, settlement and processing industries")
 )
 
@@ -112,19 +112,58 @@ par_scalar_title_df <- data.frame(
          "estcost", "estlabor", "extlabor", "culturaldeliberation",
          "extensionprop", "extensionsuggestion", "pfireuse"),
   title = c("Land cover time bound", "Initial of land cover age",
-            "Soil depletion rate", "Aboveground biomass", "Floor biomass",
-            "Fire spreading potential",
+            "Soil depletion", "Aboveground biomass", "Floor biomass",
+            "Probability of fire escape",
 
             "Harvesting", "Store properties","Expansion determinant",
 
             "Non labor cost", "Yield",
 
-            "Price", "Initial knowledge", "Subsidy", "Plot establishment cost",
-            "Plot establishment labor", "External labor",
+            "Price", "Initial knowledge", "Subsidy", "Establishment cost",
+            "Labor requirement", "External labor",
 
-            "Cultural deliberation", "Extension property",
-            "Extension suggestion", "Potential of fire use"
-            ),
+            "Cultural influence", "Extension property",
+            "Extension suggestion", "Potential of fire use"),
+  unit = c("year", "year", NA, "ton/ha", "0-1", "0-1",
+           
+         "ton/person-day", NA, "0-1", 
+         
+         "currency/ha/year", "ton/ha/year", 
+         
+         "currency/ton", NA, "currency/ha/year", "currency/ha", "person-day/ha", "person-day/ha", 
+         
+         NA, "0-1", NA, NA),
+  desc = c("The simulated livelihood options consist of pioneer, early, mature, 
+           and post production. We need to specify the age range for these stages
+           (Note: you may put blank for unlimited max upper bounds)", 
+           "Initial of land cover age", 
+           "Soil fertility depletion rate to produce a unit yield and 
+           period needed to achieve half of inherent soil fertility", 
+           "Average aboveground biomass for each land-cover type", 
+           "Fraction from aboveground biomass", 
+           "A probability fire spreads from adjacent plots",
+           "Harvesting productivity for each livelihood option", 
+           "Collected yield used for consumption, probability that 
+           the unconsumed yield will be sold to the market, and Fraction 
+           of collected will be loss, e.g. due to pest problem", 
+           "Fractions describing the importance of spatial aspects considered 
+           in land expansion (i.e. soil fertility, plot utility, suitability 
+           of land, transportation cost, maintenance cost, land clearing cost 
+           due to slope, land clearing cost due to floor biomass)", 
+           
+           "Non-labor cost", 
+           "Yield for each stage", 
+           "Price for each harvested products", 
+           "Initial knowledge for each farmer type", 
+           "Subsidy availability",
+           "Cost required to open the land minus the labor cost", 
+           "Labor needed to clear land for each livelihood option", 
+           "Labor from outside of simulated area", 
+           "Non-economic consideration for subsequent year livelihood options",
+           "Extension availability, credibility assessed by farmers to 
+           the extension, and Farmer exposure for an extension", 
+           "Extension suggestion", 
+           "Slash and burn for clearing land?"),
   width = c(rep(6, 6), 5, 7, 12, 6, 6, 5, 7, rep(6, 4), 5,7,7,5),
   table = c(rep("bio_lc_df", 6), rep("bio_ll_df", 3), rep("eco_lc_df", 2), rep("eco_ll_df", 6), rep("soc_ll_df", 4)),
   table_id = c(rep("lc_id", 6), rep("ll_id", 3), rep("lc_id", 2), rep("ll_id", 6), rep("ll_id", 4)),
@@ -151,36 +190,49 @@ par_scalar_field_df <- data.frame(
             "depletionrate", "halftimerecovery", "agb.mean", "agb.cv",
             "floorbiomassfrac.mean", "floorbiomassfrac.cv", "pfirespread.mean", "pfirespread.cv",
 
-            "harvestingstat.mean", "harvestingstat.cv", "demandpercapita", "ptosell", "lossfrac",
+            "harvestingstat.mean", "harvestingstat.cv", 
+            "demandpercapita", "ptosell", "lossfrac",
             "fertility", "yield", "suitability", "transportation", "maintenance",
             "steepness", "floorbiomass",
 
             "nonlaborcost.mean", "nonlaborcost.cv", "yield.mean", "yield.cv",
 
             "pricestat.mean", "pricestat.cv",
+            
             "exppayofftoland.agent1", "exppayofftolabor.agent1",
             "exppayofftoland.agent2", "exppayofftolabor.agent2",
+            
             "subsidy_estsub", "subsidy_mntsub", "estcoststat.mean", "estcoststat.cv",
             "estlaborstat.mean", "estlaborstat.cv", "extlaborstat.mean", "extlaborstat.cv",
 
             "culturaldeliberation", "event", "credibility", "exposure",
             "explabor", "expland", "pfireuse"
             ),
-  title = c("Min", "Max", "Mean", "CV", "Depletion Rate",
-            "Half time recovery", "Mean", "CV", "Mean", "CV", "Mean", "CV",
+  title = c("Min", "Max", "Mean", "CV", "Depletion Rate (0-1)",
+            "Half time recovery (year)", "Mean", "CV", "Mean", "CV", "Mean", "CV",
 
-            "Mean", "CV", "Demand per capita", "Potential to sell", "Loss fraction",
-            "Fertility", "Yield", "Suitability", "Transportation", "Maintenance",
-            "Steepness", "Floor biomass",
+            "Mean", "CV", 
+            "Demand per capita (ton/year)", "Probability to sell (0-1)", "Loss fraction (0-1)",
+            
+            "Soil fertility", "Land productivity", "Land suitability", 
+            "Transport access", "Plot maintenance",
+            "Slope", "Floor biomass",
 
             "Mean", "CV", "Mean", "CV",
 
-            "Mean", "CV", "Return to land [agent1]", "Return to labor [agent1]",
-            "Return to land [agent2]", "Return to labor [agent2]",
-            "Plot establishment", "Mnt", "Mean", "CV", "Mean", "CV", "Mean", "CV",
+            "Mean", "CV", 
+            
+            "Return to land [agent1] (currency/ha/year)", 
+            "Return to labor [agent1] (currency/person-day)",
+            "Return to land [agent2] (currency/ha/year)", 
+            "Return to labor [agent2] (currency/person-day)",
+            
+            "Plot establishment", "Maintain existing plots", "Mean", "CV", "Mean", "CV", "Mean", "CV",
 
-            "Cultural influence (0-1)", "Availability", "Credibility", "Exposure",
-            "Expansion of labor", "Expansion of land", "Fire use"
+            "Cultural influence (0-1)", 
+            "Availability", "Credibility", "Exposure fraction",
+            "Payoff to labor (currency/person-day)", "Payoff to land (currency/ha)", 
+            "Fire use (0-1)"
             )
 
 )
@@ -499,6 +551,24 @@ params_file_df <- data.frame(
 
 out_df <- data.frame(
   var = c("supplysufficiency", "price", "buying", "selling", 
+          "availablelabor", "availablemoney",
+          "potyield", "attyield", "nonlaborcosts", "revenue", "profit",
+          "critzonearea",
+          "exparealabor", "expareamoney", "exparea", "newplotarea",
+          "payofftolabor.agent1", "payofftoland.agent1", "payofftolabor.agent2", 
+          "payofftoland.agent2",
+          "totsecconsumptionpercapita", "totnetincomepercapita", 
+          "totestcost", "totpop", "totagb", "totagc", "firearea"),
+  unit = c("supplysufficiency", "price", "buying", "selling", 
+          "availablelabor", "availablemoney",
+          "potyield", "attyield", "nonlaborcosts", "revenue", "profit",
+          "critzonearea",
+          "exparealabor", "expareamoney", "exparea", "newplotarea",
+          "payofftolabor.agent1", "payofftoland.agent1", "payofftolabor.agent2", 
+          "payofftoland.agent2",
+          "totsecconsumptionpercapita", "totnetincomepercapita", 
+          "totestcost", "totpop", "totagb", "totagc", "firearea"),
+  desc = c("supplysufficiency", "price", "buying", "selling", 
           "availablelabor", "availablemoney",
           "potyield", "attyield", "nonlaborcosts", "revenue", "profit",
           "critzonearea",
