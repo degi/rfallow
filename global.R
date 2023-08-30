@@ -1,9 +1,11 @@
 ### RFALLOW global variables ########################
 library(dplyr)
 
-
 COLOR_DARK <- "#385624"
 COLOR_LIGHT <- "#C6E0B3"
+
+
+
 
 landuse_list <- c("Forest", "Tree-based system", "Agriculture", "Settlement")
 landuse_conv <- c("for", "af", "agr", "set")
@@ -75,7 +77,7 @@ map_input_df <- data.frame(
     "The proximity (raster distance) to road, river, market, settlement and processing industries")
 )
 
-map_input_footer <- "* double click on the dragged map item to display the map"
+map_input_footer <- "* double click the thumbnail to display the map"
 
 general_map_ids <- c("initsoilfert_map", "maxsoilfert_map", "slope_map", 
                      "subcatchment_map", "initlog_map", "reserve_map", "disaster_map")
@@ -94,6 +96,7 @@ map_data_df <- data.frame(
 )
 
 ## SCALAR INPUT ##########
+lcsetting_req <- "<p>Please complete the <b>Land Cover</b> setting to get the input options here<p>"
 
 tab_scalar_df <- data.frame(
   # tab = c("inp_biophysic_lc", "inp_biophysic_ll"),
@@ -262,8 +265,10 @@ agentprop_df <- data.frame(
 
 agentprop_col_df <- data.frame(
   col = c("label", "unit", "value1", "value2"),
-  label = c("Parameters", "Unit", "Type 1", "Type 2")
+  label = c("Parameters", "Unit", "Agent 1", "Agent 2")
 )
+
+
 
 converter_df <- data.frame(
   field = c("vol_to_biomass", "biomass_to_c", "curr_to_usd", "ext_labor_fee"),
@@ -300,7 +305,37 @@ other_inp_df <- data.frame(
   id = c("demographics", "farmer", "disaster", "converter"),
   table = c("demographics_df", "agentprop_df", "disaster_df", "converter_df"),
   title = c("Demography", "Farmer learning", "Disaster", "Converter"),
-  width = c(6,6,6,6)
+  width = c(6,6,6,6),
+  desc = c(
+  "<p><b>Initial human population:</b> 
+  Initial human population in the simulated area</p>
+  <p><b>Annual population growth rate:</b> 
+  Of population in the simulated area</p>
+  <p><b>Labor force fraction:</b> Fraction of labor from population</p>
+  <p><b>Annual working days:</b> Of labor in the simulated area</p>
+  <p><b>Secondary consumption fraction:</b> 
+  Fraction of saved money used for secondary consumption</p>
+  ",
+  "<p><b>Population fraction:</b> Population fraction for two different 
+  types of farmers (agent 1 and 2). E.g. agent 1 = conservative farmers, 
+  agent 2 = modern farmers</p>
+  <p><b>Alpha learning:</b>	Adjustment rate based on current year experience 
+  for subsequent year land-uses. 0 = farmers ignore current year experience, 
+  1= farmers fully use current year experience</p>
+  <p><b>Beta learning:</b> Adjustment rate related to suggestions from others 
+  for subsequent year land-uses. 0 = farmers ignore suggestions from others, 
+  1= farmers fully use suggestions from others</p>
+  <p><b>Prioritization:</b> Describing preference in allocating financial or 
+  labor resource to available livelihood options for subsequent year land-uses. 
+  0=available resources will be allocated uniformly among livelihood options. 
+  >1 = available resource will be mostly allocated to the most profitable 
+  livelihood option</p>
+  ",
+  "<p><b>human population decrease:</b> Decrease in human population due to a disaster</p>
+  <p><b>financial capital decrease:</b> Decrease in financial capital due to a disaster</p>
+  <p><b>working day decrease:</b> Decrease in working day due to a disaster</p>
+  ", 
+  "<p>Conversion factors</p>")
 )
 
 ##############################################################  

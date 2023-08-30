@@ -1,4 +1,4 @@
-#run rfallow web
+#run rfallow GUI
 
 library(shiny)
 d <- dirname(rstudioapi::getActiveDocumentContext()$path)

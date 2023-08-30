@@ -92,13 +92,14 @@ server <- function(input, output, session) {
     )
   }
   
-  lcsetting_req <- "Please complete the Land Cover setting to get the input options here"
+  
   
   # open tab menu
   observeEvent(input$start_button, {
     updateTabItems(session, inputId ="sidemenu", selected = "inp_landcover")
   })
 
+  
   ##################################################
   ## INPUT PARAMETRS  ##############################
   ##################################################
@@ -1019,15 +1020,17 @@ server <- function(input, output, session) {
   create_map_row <- function(x){
     co <- c("map_upload", "map_delete",get_drop_id(map_data_df$id))
     f <- x[["file"]]
+    drop_id <- get_drop_id(x["id"])
     if(is.na(f)) f <- NULL
     tagList(
-      column(6, orderInput(get_drop_id(x["id"]), x["label"], items = f, 
+      column(6, orderInput(drop_id, x["label"], items = f, 
                            connect = co, 
-                           ondblclick = "myFunction(this)", 
+                           ondblclick = "dbFunction(this)",
                            class = "drop_box", width = "100%",
                            placeholder = "Drag the map here...",
                            item_class = "warning")),
-      column(3, plotOutput(get_plot_s_id(x["id"]), width = "100%", height = "80px")),
+      column(3, plotOutput(get_plot_s_id(x["id"]), width = "100%", height = "80px"), 
+             ondblclick = "dbFunction(this)", id = paste0("x", drop_id)),
       column(3, uiOutput(get_sum_id(x["id"]))),
       column(12, hr())
     )}
@@ -1191,7 +1194,12 @@ server <- function(input, output, session) {
       pal <- get_map_color(m)
       suppressWarnings(
         suppressMessages(
-          plot(m, main = NULL, col = pal, key.pos = NULL, breaks = 'equal')
+          tryCatch({
+            plot(m, main = NULL, col = pal, key.pos = NULL, breaks = 'equal')
+          }, error=function(cond) {
+            plot(m, main = NULL, key.pos = NULL, breaks = 'equal')
+          })
+          
       ))
     })
   }))
@@ -1217,8 +1225,10 @@ server <- function(input, output, session) {
   disp_map <- reactiveValues(map = NULL, title = NULL)
 
   observeEvent(input$double_clicked, {
-    id <- gsub("drop_", "", input$double_clicked)
-    f <- input[[input$double_clicked]]
+    dbid <- input$double_clicked
+    if(startsWith(dbid, "x")) dbid <- sub('.', '', dbid)
+    id <- gsub("drop_", "", dbid)
+    f <- input[[dbid]]
     if(is.null(f)) return()
     lab <- map_data_df[map_data_df$id == id, "label"]
     title <- paste0(lab, " [", f, "]")
@@ -1226,7 +1236,10 @@ server <- function(input, output, session) {
     
     m <- params$map_list[[f]]
     disp_map$map <- generateMapPlot(f, m)
-    showNotification(paste(title, "map is displayed at the bottom"), type = "message")
+    if(!is.null(input$mapbox)) {
+      if(!input$mapbox$visible) updateBox("mapbox", action = "restore")
+      if(input$mapbox$collapsed) updateBox("mapbox", action = "toggle")
+    }
   })
 
   generateMapPlot <- function(id, map)  {  
@@ -1250,9 +1263,16 @@ server <- function(input, output, session) {
   
   output$map_display <- renderUI({
     if(is.null(disp_map$map)) return()
-    box(title = disp_map$title, disp_map$map, collapsible = T,  width = 12, closable = T)
+    box(id = "mapbox", title = disp_map$title, disp_map$map, collapsible = T,  width = 12, closable = T)
   })
 
+  # observeEvent(input$mapbox$visible, {
+  #   collapsed <- if (input$mapbox$collapsed) "collapsed" else "uncollapsed"
+  #   visible <- if (input$mapbox$visible) "visible" else "hidden"
+  #   message <- paste("My box is", collapsed, "and", visible)
+  #   showNotification(message, type = "warning", duration = 1500)
+  # })
+  
   ##################################################
   ## SCALAR INPUT ############################
   ##################################################
@@ -1265,13 +1285,19 @@ server <- function(input, output, session) {
     output[[paste0("out_", x["id"])]] <- renderUI({
       b_df <- params[[x["table"]]]
       if(is.null(b_df)) { 
-        tags$p(lcsetting_req)
+        lclink <- paste0("lc_", x["id"])
+        observeEvent(input[[lclink]], {
+          updateTabItems(session, inputId ="sidemenu", selected = "inp_landcover")
+        })
+        tagList(
+          HTML(lcsetting_req),
+          actionButton(lclink, "Go to Land Cover initialization...")
+        )
       } else {
         tagList(
-          p(x["desc"]),
-          # ifelse(is.na(x["unit"]), NULL, p("Unit:", x["unit"])),
+          HTML(x["desc"]),
           get_unit_label(x["unit"]),
-          excelOutput(paste0("table_", x["id"]))
+          excelOutput(paste0("table_", x["id"]), height = "100%")
         )
       }
     })
@@ -1368,7 +1394,10 @@ server <- function(input, output, session) {
   ##### OTHER #############
   apply(other_inp_df, 1, function(x){
     output[[paste0("out_", x["id"])]] <- renderUI({
-        excelOutput(paste0("table_", x["id"]))
+      tagList(
+        HTML(x["desc"]),
+        excelOutput(paste0("table_", x["id"]), height = "100%")
+      )
     })
   })
   
@@ -1385,7 +1414,8 @@ server <- function(input, output, session) {
       )
       excelTable(data = b_df[c_df$col], columns = b_column, 
                  allowDeleteColumn = F, allowRenameColumn = F, allowInsertRow = F,
-                 allowDeleteRow = F, tableHeight = "800", rowDrag = F,
+                 allowDeleteRow = F, #tableHeight = "200px", 
+                 rowDrag = F,  #autoFill=F, autoWidth=FALSE,
                  csvFileName = paste0(x["id"], "_table"), includeHeadersOnDownload = T,
                  tableOverflow = T, tableWidth = "100%")
     })
@@ -1465,6 +1495,7 @@ server <- function(input, output, session) {
   
   get_zero_columns <- function(df) {
     if(is.null(df)) return(NULL)
+    if(length(unlist(df)) == 0) return(NULL)
     cols <- which(colSums(df != 0) == 0)
     if(length(cols) == 0) return("-")
     colnames(df[cols])
@@ -1923,12 +1954,12 @@ server <- function(input, output, session) {
           )
         ),
         tagList(
-          p(desc),
+          HTML(desc),
           tabsetPanel(
             tabPanel("Plot", icon = icon("chart-simple"), 
                      plotOutput(paste0("plot_out",id))),
             tabPanel("Table", icon = icon("table-list"), 
-                     p("Unit:", unit), excelOutput(table_id))
+                     p("Unit:", unit), excelOutput(table_id, height = "100%"))
           )
         )
     )

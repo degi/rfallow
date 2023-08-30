@@ -129,7 +129,7 @@ ui <- dashboardPage(title = "R-Fallow",
     "))),
 
     tags$script(
-      "function myFunction(x) {
+      "function dbFunction(x) {
         Shiny.setInputValue('double_clicked', x.id, {priority: 'event'});
       }"
     ),
@@ -217,7 +217,7 @@ ui <- dashboardPage(title = "R-Fallow",
                  dropdownDivider(),
                  boxDropdownItem(downloadButton("download_lc", "Save land cover setting"))
               ),
-              excelOutput("inp_initlc_list")
+              excelOutput("inp_initlc_list", height = "100%")
           ),
           box(id = "box_lu_table", title = "Land Use", collapsible = T,  width = 7, collapsed = T,
               dropdownMenu = boxDropdown(icon = icon("ellipsis-vertical"),
@@ -228,10 +228,10 @@ ui <- dashboardPage(title = "R-Fallow",
                 dropdownDivider(),
                  boxDropdownItem(downloadButton("download_lu", "Save land use palette"))
               ),
-              excelOutput("inp_lu")
+              excelOutput("inp_lu", height = "100%")
           ),
           box(id = "box_ll_table", title = "Livelihood Types", collapsible = T,  
-              width = 5, collapsed = T, excelOutput("inp_ll")
+              width = 5, collapsed = T, excelOutput("inp_ll", height = "100%")
           )
       )),
       
