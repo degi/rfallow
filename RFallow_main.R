@@ -50,12 +50,12 @@ runRFallow <- function(params,
     f <- df[df$id == id_map, "file"]
     if(is.null(f)) return(NULL)
     if(is.na(f)) return(NULL)
-    return(params$map_list[[f]])
+    return(st_as_stars(params$map_list[[f]]))
   }
   
   #INITIALISATION
   # area_map <- params[["area_map"]]
-  area_map <- params$initlc_map
+  area_map <- st_as_stars(params$initlc_map)
   area_map[!is.na(area_map)] <- T
   
   allnewplots_map <- !area_map
@@ -160,25 +160,27 @@ runRFallow <- function(params,
   
   # map_data 
   
-  zmap <- apply(mdist_df, 1, fmap = params$map_list, FUN = function(df, fmap){
-    standardize_map(fmap[[df["file"]]])
-  }) 
-  if(is.null(zmap)) {
-    print("ERROR: proximity map is NULL!")
-    return()
-  }
-  names(zmap) <- mdist_df$file
+  # zmap <- apply(mdist_df, 1, fmap = params$map_list, FUN = function(df, fmap){
+  #   standardize_map(fmap[[df["file"]]])
+  # }) 
+  # if(is.null(zmap)) {
+  #   print("ERROR: proximity map is NULL!")
+  #   return()
+  # }
+  # names(zmap) <- mdist_df$file
 
   getMapll <- function(ll_id) {
     f <- mdist_df[mdist_df$ll_id == ll_id & !is.na(mdist_df$ll_id), "file"]
     if(length(f) == 0) return(NULL)
-    zmap[[f]]
+    # zmap[[f]]
+    standardize_map(st_as_stars(params$map_list[[f]]))
   }
   
   getProximityMap <- function(label) {
     f <- mdist_df[mdist_df$label == label, "file"]
     if(length(f) == 0) return(NULL)
-    zmap[[f]]
+    # zmap[[f]]
+    standardize_map(st_as_stars(params$map_list[[f]]))
   }
   
   # suitability map
@@ -186,7 +188,7 @@ runRFallow <- function(params,
     msuit_df <- with(params, map_data_df[map_data_df$group == "suitability",])
     f <- msuit_df[msuit_df$ll_id == ll_id, "file"]
     if(length(f) == 0) return(NULL)
-    return(params$map_list[[f]])
+    return(st_as_stars(params$map_list[[f]]))
   } 
   
   adf <- params$agentprop_df[c("field", "value1", "value2")]
@@ -506,7 +508,7 @@ runRFallow <- function(params,
     
     #POTENTIAL HARVESTING ZONES AND AREAS FOR EACH LIVELIHOOD OPTION
     print("#POTENTIAL HARVESTING ZONES AND AREAS FOR EACH LIVELIHOOD OPTION")
-    
+    #TODO: out of memory here
     phzone_map_list <- list()
     dexistingplot_map_list <- list()
     harvestingarea_df <- params$livelihood_df[c("ll_id")]
@@ -514,11 +516,6 @@ runRFallow <- function(params,
     map_ids <- as.data.frame(table(lc_map))
     for(ll_id in ll_df$ll_id) {
       #####################################################################
-      # if(!is.null(progress_detail)) {
-      #   p <- which(ll_df$ll_id == ll_id)/length(ll_df$ll_id)
-      #   progress_detail(25 + 10 * p, 
-      #                   paste0("Calculating harvesting zone: ", round(p*100), "%" ))
-      # }
       progressLoop(ll_id, ll_df$ll_id, "Calculating harvesting zone", 25)
       #####################################################################
       lcids <- get_lcid_by_llid(ll_id)
@@ -806,10 +803,11 @@ runRFallow <- function(params,
       yield_f <- getSpatialW("yield", ll_id) * 
         yield_df$zyield[yield_df$ll_id == ll_id]
       suit_f <- getSpatialW("suitability", ll_id) * suit_maps
+      
       min_d_ll <- !area_map
       min_d_ll[[1]] <- pmin(min_d_map[[1]], getMapll(ll_id)[[1]], na.rm = TRUE) 
-      
       transp_f <- getSpatialW("transportation", ll_id) * min_d_ll 
+      
       min_m <- !area_map
       if(!is.null(zdplot_map_list[[ll_id]]))
         # min_m[[1]] <- pmin(map_data$zset[[1]], zdplot_map_list[[ll_id]][[1]], na.rm = TRUE)

@@ -21,7 +21,7 @@ source("RFallow_main.R")
 
 server <- function(input, output, session) {
   options(shiny.maxRequestSize=300*1024^2)
-  data_dir = "data_temp"
+  data_dir = paste0(tempdir(), "/data_temp")
   v_inp <- reactiveValues(def_file = NULL, def_df = NULL, params_path = NULL,
                           fallow_params = NULL, initlc_file = NULL, 
                           lc_area_df = NULL)
@@ -150,14 +150,14 @@ server <- function(input, output, session) {
           print(paste("File missing:", f))
           return()
         }
-        suppressWarnings(read_stars(fpath))
+        suppressWarnings(read_stars(fpath, proxy = T))
       })
       names(m) <- mf
       p$map_list <- m
     }
     apply_parameter(p)
     enable("run_button")
-    unlink(data_dir, recursive = TRUE)
+    # unlink(data_dir, recursive = TRUE)
     update_progress_input(100, "Parameters upload completed")
   })
   
@@ -228,7 +228,7 @@ server <- function(input, output, session) {
     ##############
     enable("run_button")
     print("run enable")
-    unlink(data_dir, recursive = TRUE)
+    # unlink(data_dir, recursive = TRUE)
   }
   
   apply_parameter <- function(p) {
@@ -876,7 +876,7 @@ server <- function(input, output, session) {
   deleted_map_items <- reactiveVal()
   uploaded_map_config_df <- NULL
   uploaded_map_items <- reactiveVal()
-  map_dir <- "map_temp"
+  map_dir <- paste0(tempdir(), "/map_temp")
   
   ## upload map files
   observeEvent(input$upload_spatial, {
@@ -897,7 +897,7 @@ server <- function(input, output, session) {
           } else {
             m <- NULL
             suppressWarnings(suppressMessages(
-              try(m <- read_stars(paste0(map_dir, "/",f)), silent = T)
+              try(m <- read_stars(paste0(map_dir, "/",f), proxy = T), silent = T)
             ))
             if(is.null(m)) {
               ferrs <- append(ferrs, f)
@@ -909,7 +909,7 @@ server <- function(input, output, session) {
             }
           }
         }
-        unlink(map_dir)
+        # unlink(map_dir)
       } else {
         f <- input$upload_spatial$name[i]
         if(f %in% fu) {
@@ -917,7 +917,7 @@ server <- function(input, output, session) {
         } else {
           m <- NULL
           suppressWarnings(suppressMessages(
-            try(m <- read_stars(p[i]), silent = T)
+            try(m <- read_stars(p[i], proxy = T), silent = T)
           ))
           if(is.null(m)) {
             ferrs <- append(ferrs, f)
@@ -1189,7 +1189,8 @@ server <- function(input, output, session) {
       if(is.null(params$map_list)) return()
       f <- input[[get_drop_id(x)]]
       if(length(f) == 0) return()
-      m <- params$map_list[[f[1]]]
+      # m <- params$map_list[[f[1]]]
+      m <- st_as_stars(params$map_list[[f[1]]])
       if(all(is.na(m[[1]]))) return()
       pal <- get_map_color(m)
       suppressWarnings(
@@ -1209,7 +1210,9 @@ server <- function(input, output, session) {
       if(is.null(params$map_list)) return()
       f <- input[[get_drop_id(x)]]
       if(length(f) == 0) return()
-      m <- as.vector(params$map_list[[f[1]]][[1]])
+      mst <- st_as_stars(params$map_list[[f[1]]])
+      m <- as.vector(mst[[1]])
+      # m <- as.vector(params$map_list[[f[1]]][[1]])
       if(all(is.na(m))) return()
       suppressWarnings(
         tagList(
@@ -1234,7 +1237,8 @@ server <- function(input, output, session) {
     title <- paste0(lab, " [", f, "]")
     disp_map$title <- title
     
-    m <- params$map_list[[f]]
+    # m <- params$map_list[[f]]
+    m <- st_as_stars(params$map_list[[f]])
     disp_map$map <- generateMapPlot(f, m)
     if(!is.null(input$mapbox)) {
       if(!input$mapbox$visible) updateBox("mapbox", action = "restore")
