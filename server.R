@@ -855,7 +855,7 @@ server <- function(input, output, session) {
   output$download_lu <- downloadHandler(
     filename = function(){"landuse_palette.csv"}, 
     content = function(fname){
-      write.csv(params$landuse_df[c("id", "color")], fname, row.names = F)
+      write.csv(params$landuse_df[c("lu_id", "color")], fname, row.names = F)
     }
   )
 
@@ -1253,7 +1253,15 @@ server <- function(input, output, session) {
     if(is.na(st_crs(map))) {
       output[[out_id]] <- renderPlot({
         suppressWarnings(
-          suppressMessages(plot(map, main = NULL, col = pal, breaks = 'equal')))
+          suppressMessages(
+            # plot(map, main = NULL, col = pal, breaks = 'equal')))
+        
+            tryCatch({
+              plot(m, main = NULL, col = pal, breaks = 'equal')
+            }, error=function(cond) {
+              plot(m, main = NULL, breaks = 'equal')
+            })
+        ))
       })
       plotOutput(out_id)
     } else {
