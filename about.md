@@ -1,10 +1,14 @@
-#### Developers and authors:
+#### Software developers:
 
-Degi Harja Asmara, Rachmat Mulia, Betha Lusiana, Meine van Noordwijk?
+Degi Harja Asmara
 
-#### Cite as:
+#### Model developers:
 
-?
+Meine van Noordwijk, Desi Suyamto, Betha Lusiana, Rachmat Mulia
+
+#### Cite to the user manual as:
+
+Mulia R, Asmara DH, Lusiana B, and Reynoso GA. 2023. R-FALLOW: a model of rural landscape dynamic and economic-ecological trade-off. A User’s Manual. World Agroforestry (ICRAF), Bogor, Indonesia, and Los Banos, the Philippines.
 
 #### References: 
 
