@@ -4,7 +4,7 @@ Degi Harja Asmara
 
 #### Model developers:
 
-Meine van Noordwijk, Desi Suyamto, Betha Lusiana, Rachmat Mulia
+Meine van Noordwijk, Desi Suyamto, Betha Lusiana, Rachmat Mulia, Degi Harja Asmara
 
 #### Cite to the user manual as:
 
