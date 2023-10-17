@@ -12,7 +12,7 @@ Grace Ann Reynoso
 
 #### Cite to the user manual as:
 
-Mulia R, Asmara DH, Lusiana B, and Reynoso GA. 2023. R-FALLOW: a model of rural landscape dynamic and economic-ecological trade-off. A User’s Manual. World Agroforestry (ICRAF), Bogor, Indonesia, and Los Banos, the Philippines.
+Mulia R, Asmara DH, Lusiana B, Reynoso GA, and van Noordwijk M. 2023. R-FALLOW: a model of rural landscape dynamics and economic-ecological trade-off of land use scenario. A User’s Manual. World Agroforestry (ICRAF), Bogor, Indonesia and Los Banos, the Philippines. 
 
 #### Model references: 
 
