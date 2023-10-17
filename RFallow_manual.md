@@ -1,10 +1,8 @@
-R-FALLOW: a model of rural landscape dynamics and economic-ecological
+# R-FALLOW: a model of rural landscape dynamics and economic-ecological
 trade-off of land use scenario
 
 A User's Manual
 
-![image2.jpg](media/image1.jpg){width="6.131944444444445in"
-height="4.333333333333333in"}
 
 World Agroforestry (ICRAF)
 
