@@ -136,7 +136,7 @@ ui <- dashboardPage(title = "R-Fallow",
     
     useShinyjs(),
     use_theme(mytheme),
-    setShadow(class = "box"),
+    # setShadow(class = "box"),
     
     tags$script(src="jexcel.js"),
     tags$link(rel="stylesheet", href="jexcel.css", type="text/css"),
