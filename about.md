@@ -1,20 +1,20 @@
-#### Software developers:
+### Software developers:
 
 Degi Harja Asmara
 
-#### Model developers:
+### Model developers:
 
 Meine van Noordwijk, Desi Suyamto, Betha Lusiana, Rachmat Mulia, Degi Harja Asmara
 
-#### Spatial expert:
+### Spatial expert:
 
 Grace Ann Reynoso
 
-#### Cite to the user manual as:
+### Cite to the user manual as:
 
-Mulia R, Asmara DH, Lusiana B, Reynoso GA, and van Noordwijk M (2023) R-FALLOW: a model of rural landscape dynamics and economic-ecological trade-off of land use scenario. A User’s Manual. World Agroforestry (ICRAF), Bogor, Indonesia and Los Banos, the Philippines. 
+Mulia R, Asmara DH, Lusiana B, Salvan GAR, and van Noordwijk M. 2023. R-FALLOW: a model of rural landscape dynamics and economic-ecological trade-off of land use scenario. A User’s Manual. World Agroforestry (ICRAF), Bogor, Indonesia and Los Banos, the Philippines.
 
-#### Model references: 
+### Model references: 
 
 Lusiana B, Noordwijk M van, Cadisch G (2012) Land sparing or sharing? Exploring livestock fodder options in combination with land use zoning and consequences for livelihoods and net carbon stocks using the FALLOW model. Agriculture, Ecosystems & Environment 159:145–160. https://doi.org/10.1016/j.agee.2012.07.006
 
