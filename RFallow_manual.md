@@ -1,12 +1,12 @@
 ﻿# R-FALLOW: a model of rural landscape dynamics and economic-ecological trade-off of land use scenario
 
-A User’s Manual
+## A User’s Manual
 
 
 
-World Agroforestry (ICRAF)
+### World Agroforestry (ICRAF)
 
-2023
+### 2023
 
 
 
@@ -24,145 +24,74 @@ Rachmat Mulia (<r.mulia@cifor-icraf.org>)
 
 Betha Lusiana (<b.lusiana@cifor-icraf.org>) 
 
-Suggested citation:
+**Suggested citation:**
 
 Mulia R, Asmara DH, Lusiana B, Salvan GAR, and van Noordwijk M. 2023. R-FALLOW: a model of rural landscape dynamics and economic-ecological trade-off of land use scenario. A User’s Manual. World Agroforestry (ICRAF), Bogor, Indonesia and Los Banos, the Philippines. 
 
 **Acknowledgment**
 
 The R-FALLOW and this user’s manual are produced mainly thanks to the financial support from the Sustainable Farming in Tropical Asian Landscapes (SFITAL) Project funded by the International Fund for Agricultural Development (IFAD) and MARS Incorporation.
-# **Table of Contents**
+## **Table of Contents**
 
-[1.	What is R-FALLOW?	1](#_toc148435188)
+[1.	What is R-FALLOW?](#_toc148435188)
 
-[2.	Why is it important?	1](#_toc148435189)
+[2.	Why is it important?](#_toc148435189)
 
-[3.	Who can use R-FALLOW?	2](#_toc148435190)
+[3.	Who can use R-FALLOW?](#_toc148435190)
 
-[4.	Brief description of FALLOW modelling principles	2](#_toc148435191)
+[4.	Brief description of FALLOW modelling principles](#_toc148435191)
 
-[5.	Preparing inputs for model simulation	4](#_toc148435192)
+[5.	Preparing inputs for model simulation](#_toc148435192)
 
-[5.1 Spatial inputs	4](#_toc148435193)
+[5.1 Spatial inputs](#_toc148435193)
 
-[5.1.1 How to prepare the landcover map	5](#_toc148435194)
+[5.1.1 How to prepare the landcover map](#_toc148435194)
 
-[5.1.2 How to prepare the soil map	5](#_toc148435195)
+[5.1.2 How to prepare the soil map](#_toc148435195)
 
-[5.2 Non-spatial inputs	6](#_toc148435196)
+[5.2 Non-spatial inputs](#_toc148435196)
 
-[5.2.1 Socio-economic inputs	6](#_toc148435197)
+[5.2.1 Socio-economic inputs](#_toc148435197)
 
-[5.2.2 Biophysical and demographic inputs	7](#_toc148435198)
+[5.2.2 Biophysical and demographic inputs](#_toc148435198)
 
-[6.	How to open and parameterize R-FALLOW	7](#_toc148435199)
+[6.	How to open and parameterize R-FALLOW](#_toc148435199)
 
-[6.1 How to open the model	7](#_toc148435200)
+[6.1 How to open the model](#_toc148435200)
 
-[6.2 How to parameterize the model	11](#_toc148435201)
+[6.2 How to parameterize the model](#_toc148435201)
 
-[6.2.1 Module “Initial Input”	11](#_toc148435202)
+[6.2.1 Module “Initial Input”](#_toc148435202)
 
-[6.2.2 Option 1 of parameterizing R-FALLOW	12](#_toc148435203)
+[6.2.2 Option 1 of parameterizing R-FALLOW](#_toc148435203)
 
-[6.2.3 Option 2 of parameterizing R-FALLOW	18](#_toc148435204)
+[6.2.3 Option 2 of parameterizing R-FALLOW](#_toc148435204)
 
-[6.2.4 Option 3 of parameterizing R-FALLOW	20](#_toc148435205)
+[6.2.4 Option 3 of parameterizing R-FALLOW](#_toc148435205)
 
-[7. How to run the model	20](#_toc148435206)
+[7. How to run the model](#_toc148435206)
 
-[8. Outputs of the model	21](#_toc148435207)
+[8. Outputs of the model](#_toc148435207)
 
-[9. Useful references	22](#_toc148435208)
+[9. Useful references](#_toc148435208)
 
-[Annex 1 Complete list of input maps and parameters required by R-FALLOW	23](#_toc148435209)
+[Annex 1 Complete list of input maps and parameters required by R-FALLOW](#_toc148435209)
 
+## <a name="_toc148435188"></a>**What is R-FALLOW?**
 
-
-
-
-**List of Figures**
-
-[Figure 1 Prospective diagram depicting the impact of land use strategies on economic (x axes) and ecological indicator (y axes) relative to the baseline condition (central point of the diagram).	1](#_toc148435228)
-
-[Figure 2 Schematic diagram of FALLOW modelling principles and its modules.	3](#_toc148435229)
-
-[Figure 3 The main user interface of R-FALLOW online application	8](#_toc148435230)
-
-[Figure 4 The source code for offline version of R-FALLOW	10](#_toc148435231)
-
-[Figure 5 R scripts to open the offline version of R-FALLOW	11](#_toc148435232)
-
-[Figure 6 Three different ways of parameterizing R-FALLOW	12](#_toc148435233)
-
-[Figure 7 Option 1 of parameterizing R-FALLOW	12](#_toc148435234)
-
-[Figure 8 An example land cover map opened using the Option 1	13](#_toc148435235)
-
-[Figure 9 Section for preferable setting of land use and land cover information	13](#_toc148435236)
-
-[Figure 10 Module of "Spatial Data Input”	14](#_toc148435237)
-
-[Figure 11 Module of "Biophysics by Land Cover”	14](#_toc148435238)
-
-[Figure 12 Module of "Biophysics by Livelihood”	15](#_toc148435239)
-
-[Figure 13 Module of “Economic by Land Cover”	15](#_toc148435240)
-
-[Figure 14 Module of "Economics by Livelihood”	16](#_toc148435241)
-
-[Figure 15 Module of "Socio Cultural”	17](#_toc148435242)
-
-[Figure 16 Module of "Others”	17](#_toc148435243)
-
-[Figure 17 Module of "Checklist Summary”	18](#_toc148435244)
-
-[Figure 18 Spatial and non-spatial inputs required by R-FALLOW using the Option 2	18](#_toc148435245)
-
-[Figure 19 The agentprop csv file	19](#_toc148435246)
-
-[Figure 20 The biophysic_lc csv file	19](#_toc148435247)
-
-[Figure 21 Module of “Run Simulation”	20](#_toc148435248)
-
-[Figure 22 Notification of end of simulation	21](#_toc148435249)
-
-[Figure 23 List of possible outputs to display using R-FALLOW	21](#_toc148435250)
-
-[Figure 24 Examples of outputs of R-FALLOW	22](#_toc148435251)
-
-
-
-**List of Tables**
-
-[Table 1 Minimum input maps for R-FALLOW	4](#_toc148435372)
-
-[Table 2 The default 41 landcover types simulated by R-FALLOW	5](#_toc148435373)
-
-[Table 3 Minimum socio-economic inputs required by R-FALLOW	6](#_toc148435374)
-
-[Table 4 Minimum biophysical and demographic inputs required by R-FALLOW	7](#_toc148435375)
-
-
-
-
-#
-
-
-1. # <a name="_toc148435188"></a>**What is R-FALLOW?**
 R-FALLOW (**F**orest, **A**groforest, **L**ow-value **L**and **O**r **W**aste?) is a model of rural landscape dynamics and related economic-ecological trade-off developed using the R language. It has unique characteristics as compared to other rural landscape models mainly because it simulates landcover change at landscape (e.g., district or province) scale *driven by smallholder farmers' decision on labour, financial and land allocation to land use options*. Therefore, it considers smallholder farmers as the main agent of land use dynamics, along with possible land use change over State’s or concession lands or conversion of forest lands. Existing models of rural landscape dynamics usually create projection of future land uses using e.g., land use transition matrix. 
 
 The initial version of the FALLOW model was developed by van Noordwijk (2002) using the Stella programming platform, which was then translated into the PC Raster version (e.g., see Suyamto et al. 2009) to better handle the spatial input information. More recently, to better facilitate model’s parametrisation and a possibility for the model to ‘communicate’ with other models developed using the contemporary R or Java language, the FALLOW model is translated into the R programming language. The FALLOW model has been used as a supporting tool to assess projected impacts and analyse economic-ecological trade-off among land use scenarios in different countries especially in Southeast Asia such as Indonesia, the Philippines, and Vietnam (van Noordwijk et al. 2008, Lusiana et al. 2012, Mulia et al. 2013, Tata et al. 2013, Mulia et al. 2018).
 
-1. # <a name="_toc148435189"></a>**Why is it important?**
-There are four possible directions where an implementation of land use strategies can lead to (Figure 1). For example, a strategy which prioritizes an economic benefit might lead to a better livelihood of rural population relative to the baseline condition but brings about a decline in an ecological indicator (namely, the ‘Red Development’ strategy in Figure 1). An ideal land use strategy should bring about improvement both in socio-economic and ecological goals (the ‘Green Development’ in Figure 1), relative to the baseline.   
+## <a name="_toc148435189"></a>**Why is it important?**
 
+There are four possible directions where an implementation of land use strategies can lead to (Figure 1). For example, a strategy which prioritizes an economic benefit might lead to a better livelihood of rural population relative to the baseline condition but brings about a decline in an ecological indicator (namely, the ‘Red Development’ strategy in Figure 1). An ideal land use strategy should bring about improvement both in socio-economic and ecological goals (the ‘Green Development’ in Figure 1), relative to the baseline.   
 
 <a name="_ref147934195"></a><a name="_toc148435228"></a>Figure 1 Prospective diagram depicting the impact of land use strategies on economic (x axes) and ecological indicator (y axes) relative to the baseline condition (central point of the diagram).
 
 R-FALLOW is important because it can be used to assess possible impacts of land use scenarios which accommodate local stakeholders’ preference and decisions on labour, financial and land allocation for future land uses, and possible land use change over State’s or concession lands or conversion of forest lands. The key economic indicator projected by the model is income per capita of smallholder farmers[^1], while the key ecological indicator is the total aboveground carbon storage at landscape level. Thanks to the indicators, the model can be used to analyse a trade-off among possible land use scenarios, relative to the baseline, as inputs to develop sensible land use strategies. 
 
-1. # <a name="_toc148435190"></a>**Who can use R-FALLOW?**
+## <a name="_toc148435190"></a>**Who can use R-FALLOW?**
 The model can be used by research and development actors, academics or students, or local authorities who are interested in assessing the impacts of land use scenarios and local stakeholders’ decision in <a name="_hlk147416673"></a>labour, financial and land allocation on income per capita of smallholder farmers and aboveground carbon storage of rural landscape. In a more detailed, the model is suitable for those who are interested in the following possible research questions:
 
 - Which capitals (labours, money, and land) are constraining the adoption or expansion of certain land use options by smallholder farmers over the simulated landscape?
@@ -173,7 +102,7 @@ The model can be used by research and development actors, academics or students,
 - Have the simulate community been involved in the collection of non-timber forest products and if the income from the collection could substantially increase household’s income?
 - In a possible presence of natural disaster that might affect partial or the whole area over the landscape, what will be the consequence on the working force and investment to agricultural land uses?
 
-1. # <a name="_toc148435191"></a>**Brief description of FALLOW modelling principles**
+## <a name="_toc148435191"></a>**Brief description of FALLOW modelling principles**
 As highlighted in <a name="_hlk148012627"></a>Lusiana et al. (2012), land use change model to understand the trade-offs between economic and ecological purposes might not be necessarily complex, in contrast to models which simulate detailed biophysical interactions between crops, soils, and climate. However, it should consider important drivers of land use change to include household economics and its influence on the household’s decision making and agricultural productivity. A desirable land use change model should be generic and flexible enough for possible uses at various sites and site-specific conditions.
 
 R-FALLOW treats land use and land cover simultaneously, assuming that land use dynamics are a major determinant of land-cover change over the simulated landscape. As summarized by Lusiana et al. (2012), the interactions between different factors or modules in FALLOW start with the changes in soil fertility at farm level wherein soil fertility depletes during cropping periods and recovers during fallow periods. The actual fertility determines agricultural yield and total production from agricultural farms, and along with non-timber forest products, contribute to food sufficiency and household’s economic capital. The population dynamics affects labour force as well as demand for food. Meanwhile, local stakeholders’ strategic decision on labour, financial capital, and land allocation determines land use changes and land cover mosaic over the simulated landscape.
@@ -187,9 +116,12 @@ In the model, we can simulate smallholder farmers which prioritize more profitab
 
 R-FALLOW has a default spatial resolution of 1 ha and temporal resolution of 1 year. Therefore, the model simulates annual decision of smallholder farmers in labour, financial capital, and land allocation. It is suitable to simulate land use change at meso-scale, for example district or province level.
 
-1. # <a name="_toc148435192"></a>**Preparing inputs for model simulation**
+## <a name="_toc148435192"></a>**Preparing inputs for model simulation**
+
 R-FALLOW requires two types of inputs: spatial inputs in the form of maps and non-spatial inputs or parameter values. 
-## <a name="_toc148435193"></a>**5.1 Spatial inputs**
+
+### <a name="_toc148435193"></a>**5.1 Spatial inputs**
+
 The recommended format of input maps for R-FALLOW is tif, which can be produced using any geographical information system (GIS) software. The minimum input maps[^3] that should be prepared for running the model are listed in Table 1. **Please note that all input maps for R-FALLOW should have a consistent geographic projection**. Annex 1 provides a complete list of input maps for R-FALLOW and explains that several input maps should be produced for each crop product or cultivation practice. For example, the land suitability map should be produced for each cultivation practice simulated using the model. Another example, the map of distance to processing industries should be produced for the main product of the cultivation practices. 
 
 <a name="_ref147935487"></a><a name="_toc148435372"></a>Table 1 Minimum input maps for R-FALLOW
@@ -207,7 +139,9 @@ The recommended format of input maps for R-FALLOW is tif, which can be produced 
 |9|Distance to settlement|Dset.tif|m|Distance of each pixel to the closest settlement for e.g., plot’s maintenance|
 |10|Distance to processing industry|Dind.tif|m|Distance of each pixel to the closest processing industry of products from simulated cultivation practices.|
 |11|Land suitability |Stfood1-4.tif, staf1-8.tif|0 or 1|0=not suitable, 1=suitable, should be produced for each cultivation practice. |
-### <a name="_toc148435194"></a>5.1.1 How to prepare the landcover map
+
+#### <a name="_toc148435194"></a>5.1.1 How to prepare the landcover map
+
 The current version of R-FALLOW can simulate, by default, maximum 41 landcover types. **However, depending on the complexities of landcover types in the simulated site, it is possible for R-FALLOW to simulate more than 41 landcover types**. Table 2 lists the 41 landcover types and they consist of 4 categories of natural forest based on its intactness or regeneration stage namely pioneer, young secondary, old secondary, or primary stage; 4 different annual crops; and 8 different perennial shrub or tree-based practices. Perennial shrubs include coffee or tea monoculture plantation. Each perennial shrub or tree-based practice has four production stages namely pioneer, early production, peak production, and postproduction stage. Users can determine the length (years) of each stage. 
 
 <a name="_ref147937539"></a><a name="_toc148435373"></a>Table 2 The default 41 landcover types simulated by R-FALLOW
@@ -230,16 +164,20 @@ The current version of R-FALLOW can simulate, by default, maximum 41 landcover t
 
 Users might obtain input landcover map from e.g., the authorities or local stakeholders of the simulated district or province, and they might need to do some re-classification of land cover types to match the ID setting of R-FALLOW.  
 
-### <a name="_toc148435195"></a>5.1.2 How to prepare the soil map
+#### <a name="_toc148435195"></a>5.1.2 How to prepare the soil map
+
 The level of soil fertility in R-FALLOW ranges from 1 (least) to 5 (most fertile). Maximum soil fertility is the maximum level of soil fertility that a soil type can achieve and should be equal or higher than the initial or actual soil fertility. To prepare the initial and maximum soil fertility map:
 
 - Please obtain a soil map which covers the entire simulated area and contains sufficient information for a soil expert to assign the relative value between 1 and 5 to the different soil types. For example, a soil map which follows e.g., the FAO standard classification (<https://www.fao.org/soils-portal/data-hub/soil-classification/en/>) or contains information of the level of soil organic contents over the simulated area[^4].
 - Please ask a soil expert to approximate the initial and maximum level of soil fertility of each soil type or the relative level of soil fertility of different areas over the simulated landscape. 
 - If no soil information is available for the simulated site, a derivation from the global or regional dataset (for example, <https://www.fao.org/soils-portal/data-hub/soil-maps-and-databases/en/>)  might be useful as the first approximation. 
 
-## <a name="_toc148435196"></a>**5.2 Non-spatial inputs**
+### <a name="_toc148435196"></a>**5.2 Non-spatial inputs**
+
 The non-spatial inputs consist of economic, biophysical, and demographic inputs. Below is a description of minimum non-spatial inputs required by R-FALLOW, while a more detailed information is given in Annex 1.
-### <a name="_toc148435197"></a>5.2.1 Socio-economic inputs 
+
+#### <a name="_toc148435197"></a>5.2.1 Socio-economic inputs 
+
 There are at minimum 9 socio-economic inputs[^5] required by R-FALLOW (Table 3). Those inputs need to be estimated for each cultivation (annual crop or tree-based) practice[^6]. For the inputs which relate to unit currency, it is recommendable to use the values over the past e.g., 5 years, and take the average to incorporate the historical trend. User can assign a coefficient of variation of each input parameter for R-FALLOW to generate values around the average using the variation[^7]. 
 
 <a name="_ref148014027"></a><a name="_toc148435374"></a>Table 3 Minimum socio-economic inputs required by R-FALLOW
@@ -256,7 +194,8 @@ There are at minimum 9 socio-economic inputs[^5] required by R-FALLOW (Table 3).
 |8|Product price|Unit currency per ton|Price of crop product from the cultivation practices. If a practice integrates various main crops, need to take the average price of the different main crops. Otherwise, can be represented by the price of the main crop.|
 |9|Non-labour cost|Unit currency per ha|Non-labour cost for maintaining the farm and harvesting. Need to estimate for each cultivation practice.|
 
-### <a name="_toc148435198"></a>5.2.2 Biophysical and demographic inputs
+#### <a name="_toc148435198"></a>5.2.2 Biophysical and demographic inputs
+
 There are at minimum 8 biophysical and demographic inputs required by R-FALLOW (Table 4). Related to the biophysical inputs, for the case of perennial crop- or tree-based practices, estimation for each growth or production stage (pioneer, early-, peak-, and post-production) is necessary. 
 
 <a name="_ref148016609"></a><a name="_toc148435375"></a>Table 4 Minimum biophysical and demographic inputs required by R-FALLOW
@@ -272,18 +211,21 @@ There are at minimum 8 biophysical and demographic inputs required by R-FALLOW (
 |7|Fraction of productive farm labours |0-1|Fraction of productive farm labours, including household’s labours, relative to the total population of the simulated site|
 |8|Annual working days|Person day per year|Average annual working days|
 
-1. # <a name="_toc148435199"></a>**How to open and parameterize R-FALLOW**
-## <a name="_toc148435200"></a>**6.1 How to open the model**
+## <a name="_toc148435199"></a>**How to open and parameterize R-FALLOW**
+
+### <a name="_toc148435200"></a>**6.1 How to open the model**
+
 There are two possibilities: using or without internet connection. 
-### 6\.1.1 Using internet connection
+
+#### 6.1.1 Using internet connection
+
 There are two ways to open the model online:
 
-1. **Option 1: Using an internet browser** (e.g., Google Chrome) and this web address <https://degi.shinyapps.io/rfallow/>. However, it is currently still a temporary address with limited runtime access (because it is hosted on a free server). The more permanent host and web address will available soon. Figure 3 shows the main interface of R-FALLOW opened using the web address[^8]. The main advantage of opening the model using the web address is that no software or plugin is necessary to install on our computer.
-
+**Option 1: Using an internet browser** (e.g., Google Chrome) and this web address <https://degi.shinyapps.io/rfallow/>. However, it is currently still a temporary address with limited runtime access (because it is hosted on a free server). The more permanent host and web address will available soon. Figure 3 shows the main interface of R-FALLOW opened using the web address[^8]. The main advantage of opening the model using the web address is that no software or plugin is necessary to install on our computer.
 
 <a name="_ref148361725"></a><a name="_toc148435230"></a>Figure 3 The main user interface of R-FALLOW 
 
-1. **Option2:** Because the first option currently has a limitation, **we can open the model using RStudio software like described below but it still needs an internet connection**. Please follow these steps:
+**Option2:** Because the first option currently has a limitation, **we can open the model using RStudio software like described below but it still needs an internet connection**. Please follow these steps:
 - Please install R and RStudio in our desktop[^9], and please just follow the instructions provided on the website to install the software (note: R and RStudio are available for any computer’s operating system).
 - Please open RStudio and run the script below:
 
@@ -297,21 +239,18 @@ To run the script, copy one line of the script to “Console” window in RStudi
 
 The second option is more complicated than the first one because we need to install R, RStudio, and required libraries. However, it is not necessary for us to copy the model’s source code like the option without internet which will be described below.  
 
-
 <a name="_ref148541619"></a>Figure 4 Running the script in RStudio to open R-FALLOW without copying the source code
-
 
 <a name="_ref148541916"></a>Figure 5 Install missing R libraries using RStudio
 
-### 6\.1.2 Without internet connection
+#### 6.1.2 Without internet connection
 Please do the following steps:
 
-1. Please copy the R source code available on GitHub (<https://github.com/degi/rfallow>, Figure 6) to one folder on your computer’s hard drive.
-
+* Please copy the R source code available on GitHub (<https://github.com/degi/rfallow>, Figure 6) to one folder on your computer’s hard drive.
 
 <a name="_ref148362991"></a><a name="_toc148435231"></a>Figure 6 The source code for running R-FALLOW without internet connection 
 
-1. Using RStudio, please open the file “run\_RFallow\_shiny\_GUI.R” which contains the following script (Figure 7):
+* Using RStudio, please open the file “run\_RFallow\_shiny\_GUI.R” which contains the following script (Figure 7):
 
 *library(shiny)*
 
@@ -321,114 +260,97 @@ Please do the following steps:
 
 *runApp("rfallow")*
 
-1. Please run the script by putting the cursor on the first line and click the green arrow (or press CTRL + Enter) and do similarly for the second until the fourth line. A user interface like shown earlier in Figure 3 will appear. 
+* Please run the script by putting the cursor on the first line and click the green arrow (or press CTRL + Enter) and do similarly for the second until the fourth line. A user interface like shown earlier in Figure 3 will appear. 
 
 Please note that, to be able to open R-FALLOW using the script and without internet connection, your computer should have all required R libraries. However, the libraries will not be automatically updated if you keep using R-FALLOW without internet connection for long term, unless it is connected to internet.  
 
-
 <a name="_ref148363361"></a><a name="_toc148435232"></a>Figure 7 R scripts to open R-FALLOW without internet connection
 
-## <a name="_toc148435201"></a>**6.2 How to parameterize the model**
-### <a name="_toc148435202"></a>6.2.1 Module “Initial Input”
-There are three different ways of parameterizing the model through the module “Initial Input” (Figure 8):
+### <a name="_toc148435201"></a>**6.2 How to parameterize the model**
 
-1. Upload initial landcover map and manually input parameter values using the model’s interface (option 1). In this option, we can upload each input map one by one, and assign parameter values manually into the tables provided by the model.
-1. Load a compressed file (\*.zip) containing all input maps (\*.tif) and input parameter values in csv files (option 2). This option can be selected if you have prepared all input maps in tif and input parameters values in csv files. The csv files are available in the zip file of example of R-FALLOW application in Buol district, Sulawesi Island, Indonesia that can be obtained from the model’s developers. Users can simply replace the inputs maps and parameter values in the csv files to suit their simulation site.  
-1. Load a compressed file (\*.zip) containing all input maps (\*.tif) and input parameter values available in the PC Raster format (namely, the previous version of FALLOW) (option 3). This option facilitates users who have input data in such format to run with R-FALLOW.  
+#### <a name="_toc148435202"></a>6.2.1 Module “Initial Input”
+
+There are three different ways of parameterizing the model through the module “Initial Input” (Figure 8):
+* Upload initial landcover map and manually input parameter values using the model’s interface (option 1). In this option, we can upload each input map one by one, and assign parameter values manually into the tables provided by the model.
+* Load a compressed file (\*.zip) containing all input maps (\*.tif) and input parameter values in csv files (option 2). This option can be selected if you have prepared all input maps in tif and input parameters values in csv files. The csv files are available in the zip file of example of R-FALLOW application in Buol district, Sulawesi Island, Indonesia that can be obtained from the model’s developers. Users can simply replace the inputs maps and parameter values in the csv files to suit their simulation site.  
+* Load a compressed file (\*.zip) containing all input maps (\*.tif) and input parameter values available in the PC Raster format (namely, the previous version of FALLOW) (option 3). This option facilitates users who have input data in such format to run with R-FALLOW.  
 
 <a name="_ref148025535"></a><a name="_toc148435233"></a>Figure 8 Three different ways of parameterizing R-FALLOW
 
-### <a name="_toc148435203"></a>6.2.2 Option 1 of parameterizing R-FALLOW
+#### <a name="_toc148435203"></a>6.2.2 Option 1 of parameterizing R-FALLOW
 If you selected the Option 1, then a user interface like shown in Figure 9 will appear. 
-
 
 <a name="_ref148263919"></a><a name="_toc148435234"></a>Figure 9 Option 1 of parameterizing R-FALLOW
 
 Please follow these steps:
 
-1. Upload your initial land cover map. Again, a preferable format of input maps for R-FALLOW is tif. The uploaded land cover map will be automatically displayed by R-FALLOW like shown, as an example, in Figure 10, for the case of the Buol district.
-1. Please set the preferred colour, land use and land cover name, related growth or production stage (please refer again the section 5.1.1 on such stages), and land cover ‘short name’.
-1. Once you have set the land cover table, please save the setting using the menu on the top right of the table (Figure 11). The land cover setting that you saved, will be automatically displayed by R-FALLOW in other tables of input parameters that you will need to set up. This will ensure that you use consistent land use or land cover setting during the model’s parameterization.
-
+* Upload your initial land cover map. Again, a preferable format of input maps for R-FALLOW is tif. The uploaded land cover map will be automatically displayed by R-FALLOW like shown, as an example, in Figure 10, for the case of the Buol district.
+* Please set the preferred colour, land use and land cover name, related growth or production stage (please refer again the section 5.1.1 on such stages), and land cover ‘short name’.
+* Once you have set the land cover table, please save the setting using the menu on the top right of the table (Figure 11). The land cover setting that you saved, will be automatically displayed by R-FALLOW in other tables of input parameters that you will need to set up. This will ensure that you use consistent land use or land cover setting during the model’s parameterization.
 
 <a name="_ref148270689"></a><a name="_toc148435235"></a>Figure 10 An example land cover map opened using the Option 1
 
-
 <a name="_ref148271112"></a><a name="_toc148435236"></a>Figure 11 Section for preferable setting of land use and land cover information 
 
-1. Please upload other required input maps and all tables of input parameters by checking available modules: “Spatial Data”, “Biophysics by Land Cover”, etc.
-
+* Please upload other required input maps and all tables of input parameters by checking available modules: “Spatial Data”, “Biophysics by Land Cover”, etc.
 
 The module “Spatial Data” facilitates the upload of other spatial information required by the model (Figure 12). The interface will automatically display the uploaded maps, and it helps users to re-check the accuracy and relevance of the input maps. 
-
 
 <a name="_ref148365962"></a><a name="_toc148435237"></a>Figure 12 Module of "Spatial Data Input”
 
 The module “Biophysics by Land Cover” requires information of the maximum age of each stage of perennial crop or tree-based practices (Land cover time bound), initial land cover age which determines the age of each landcover type at the start of the simulation, soil depletion rate, floor biomass, aboveground biomass, and probability of fire use and spread. 
 
-
 <a name="_toc148435238"></a>Figure 13 Module of "Biophysics by Land Cover”
 
 The module "Biophysics by Livelihood” requires biophysical information by livelihood option. The latter is household’s income source which consists of 15 different options namely, off-farm, non-timber forest products (NTFP), timber, 4 annual crop practices, and 8 perennial crop- or tree-based practices. In this module, users can assign parameter values which relate to harvesting productivity, demand per capita, probability to sell, fraction of loss when transporting agricultural products, and main factors which determine the plot attractiveness of crop expansion.   
-
-
 
 <a name="_toc148435239"></a>Figure 14 Module of "Biophysics by Livelihood”
 
 The module of “Economic by Land Cover” requires information of non-labour costs and yield by land cover type (Figure 15).
 
-
 <a name="_ref148367334"></a><a name="_toc148435240"></a>Figure 15 Module of “Economic by Land Cover”
 
 The module "Economics by Livelihood” requires information of product price, possible subsidy, labour requirement for farm establishment, return to land and labour (in the sub-module “Initial knowledge”), cost for establishing new farm, and external labour needed to maintain the farms.
-
 
 <a name="_toc148435241"></a>Figure 16 Module of "Economics by Livelihood”
 
 The module "Socio Cultural” facilitates users to assign values for cultural influence namely the influence of cultural preference in choosing land use options; extension property which informs availability of agricultural extension, credibility of the extension staffs as perceived by smallholder farmers, and openness of smallholder farmers to information conveyed through the extension; return to land and labour informed by external sources which can be different as compared to the current return to land and labour assumed or experienced by smallholder farmers[^10]; and local habit of burning farm lands before new crop cultivations.    
 
-
 <a name="_toc148435242"></a>Figure 17 Module of "Socio Cultural”
 
 The module “Others” is for inputs which relate to demographic condition (initial population, annual growth rate, fraction of productive farm labours, annual working days, initial financial capital, and secondary consumption fraction), types of farmers and their learning process (population fraction, alpha and beta factor, and ‘profit orientation’), time and impact of natural disaster (on human population, financial capital, working days), and some conversion factors (timber volume to biomass, biomass to carbon, local currency to USD, and fee of external labour).  
 
-
 <a name="_toc148435243"></a>Figure 18 Module of "Others”
 
-1. Save the input parameter setting using the module “Checklist Summary” (Figure 19). R-FALLOW will compile input maps and parameter values in a zip file. You can later open the compressed file using Option 2.    
-
+* Save the input parameter setting using the module “Checklist Summary” (Figure 19). R-FALLOW will compile input maps and parameter values in a zip file. You can later open the compressed file using Option 2.    
 
 <a name="_ref148369997"></a><a name="_toc148435244"></a>Figure 19 Module of "Checklist Summary” 
 
-### <a name="_toc148435204"></a>6.2.3 Option 2 of parameterizing R-FALLOW
+#### <a name="_toc148435204"></a>6.2.3 Option 2 of parameterizing R-FALLOW
 The suggested steps are as follow:
 
-1. Please extract the example file “Inputs\_FALLOW\_Buol.zip” into any folder in your computer. As mentioned earlier, the zip file contains input maps and several csv files which integrate non-spatial inputs required by R-FALLOW (Figure 20). Please remind that, the R-FALLOW will also produce a similar zip file if you selected the Option 1 and saved the parameter setting using the module “Checklist Summary”.
-
+* Please extract the example file “Inputs\_FALLOW\_Buol.zip” into any folder in your computer. As mentioned earlier, the zip file contains input maps and several csv files which integrate non-spatial inputs required by R-FALLOW (Figure 20). Please remind that, the R-FALLOW will also produce a similar zip file if you selected the Option 1 and saved the parameter setting using the module “Checklist Summary”.
 
 <a name="_ref148263356"></a><a name="_toc148435245"></a>Figure 20 Spatial and non-spatial inputs required by R-FALLOW using the Option 2
 
-1. The zip file “Inputs\_FALLOW\_Buol.zip” contains example of inputs for the case of R-FALLOW simulation in the Buol district. Please replace each map with your input maps and keep the same file names. Please also refer again to Table 1 and Annex 1 for an explanation of each map.
-1. Please open each csv file using e.g., MS Excel to assign parameter values. Please note that each input table on the R-FALLOW’s interface is represented by a csv file. For examples: 
+* The zip file “Inputs\_FALLOW\_Buol.zip” contains example of inputs for the case of R-FALLOW simulation in the Buol district. Please replace each map with your input maps and keep the same file names. Please also refer again to Table 1 and Annex 1 for an explanation of each map.
+* Please open each csv file using e.g., MS Excel to assign parameter values. Please note that each input table on the R-FALLOW’s interface is represented by a csv file. For examples: 
 - The agentprop.csv (Figure 21) corresponds to the table “Farmer learning” in the module “Others” which contains information of population, impact of self-reflection and suggestions from others in decision making (i.e., alpha and beta learning respectively), and degree of profit orientation.  
-
 
 <a name="_ref148385697"></a><a name="_toc148435246"></a>Figure 21 The agentprop csv file
 
 - The biophysic\_lc.csv (Figure 22) corresponds to all tables in the module “Biophysics by Land Cover” which contains information of land cover time bound, soil depletion rate, etc. **Please note that**, while in Option 1 you can set the land cover names etc. using the model’s interface, in Option 2 you will need to do that inside the csv files. For example, here in the biophysic\_lc.csv, you need to replace the crop’s names from patchouli, rice etc. (namely, the crops in the Buol district) with the names of your simulated crops. There are other csv files, apart from the biophysic\_lc.csv, which also require you to replace the sample crop names. Please use consistent crop names across the different csv files.  
 
-
 <a name="_ref148386134"></a><a name="_toc148435247"></a>Figure 22 The biophysic\_lc csv file
 
 - Please assign parameter values in other csv files and refer to Annex 1 which describes the link between R-FALLOW modules and corresponding csv files.   
 
-1. Once you have replaced the input maps and set suitable parameter values through the csv files, please re-zip those files, and open with R-FALLOW using the Option 2. The model will automatically display the input maps and parameter values in corresponding modules and tables. **Please note that**, using the Option 2, you can still modify parameter values in any table on the R-FALLOW’s interface and re-save the parameter setting using the module “Checklist Summary”. **However**, in Option 2, you can only modify land use or land cover name using the csv files namely outside R-FALLOW, not through the model’s interface. Modifying the land use or land cover name through the model’s interface will make the assigned parameter values in other tables become 0 because of inconsistent land use or land cover names between the land cover setting and those referred in the other tables.  
+* Once you have replaced the input maps and set suitable parameter values through the csv files, please re-zip those files, and open with R-FALLOW using the Option 2. The model will automatically display the input maps and parameter values in corresponding modules and tables. **Please note that**, using the Option 2, you can still modify parameter values in any table on the R-FALLOW’s interface and re-save the parameter setting using the module “Checklist Summary”. **However**, in Option 2, you can only modify land use or land cover name using the csv files namely outside R-FALLOW, not through the model’s interface. Modifying the land use or land cover name through the model’s interface will make the assigned parameter values in other tables become 0 because of inconsistent land use or land cover names between the land cover setting and those referred in the other tables.  
 
-
-### <a name="_toc148435205"></a>6.2.4 Option 3 of parameterizing R-FALLOW
+#### <a name="_toc148435205"></a>6.2.4 Option 3 of parameterizing R-FALLOW
 The users of the PC Raster version of FALLOW can compress the input maps (namely, maps in PC Raster format) and parameter files (\*.par) into a zip file. Please upload the zip file using the Option 3 and as in Option 2, the R-FALLOW will display all maps and input parameter values in corresponding modules and tables. The users can save the parameter setting using the module “Checklist Summary”.   
 
-# <a name="_toc148435206"></a>**7. How to run the model**
+## <a name="_toc148435206"></a>**7. How to run the model**
 Once all spatial and non-spatial inputs were ready, we can run the model using the module “Run Simulation’ (Figure 23). Please determine the length of the simulation year and then click “Run”. 
 
 <a name="_ref148278850"></a><a name="_toc148435248"></a>Figure 23 Module of “Run Simulation”
@@ -437,18 +359,16 @@ The “iteration (year)” indicates current simulation year while “Progress D
 
 <a name="_ref148280623"></a><a name="_toc148435249"></a>Figure 24 Notification of end of simulation 
 
-# <a name="_toc148435207"></a>**8. Outputs of the model**
+## <a name="_toc148435207"></a>**8. Outputs of the model**
 There are several outputs that can be displayed using R-FALLOW and saved into images or tables. Please select the dropdown list to know possible outputs to display (Figure 25). 
-
 
 <a name="_ref148280822"></a><a name="_toc148435250"></a>Figure 25 List of possible outputs to display using R-FALLOW
 
 The model can display the outputs either in chart, table, or map. For example, Figure 26 shows the projected final land cover (at simulation year 30) in a map and land cover area across 30 simulation years in a chart. Please select “Table” to get similar outputs in a table format. For the chart option, you can choose between 50% or 100% width as the chart size and click “Display”. R-FALLOW can save output charts or maps in an image format while output tables in csv format, by clicking “Download”.
 
-
 <a name="_ref148280951"></a><a name="_toc148435251"></a>Figure 26 Examples of outputs of R-FALLOW
 
-# <a name="_toc148435208"></a>**9. Useful references** 
+## <a name="_toc148435208"></a>**9. Useful references** 
 Ordered by publication year:
 
 - van Noordwijk M. 2002. Scaling trade-offs between crop productivity, carbon stocks and biodiversity in shifting cultivation landscape mosaics: the FALLOW model. Ecol. Model. 149, 113–126. Available at: <https://www.sciencedirect.com/science/article/abs/pii/S030438000100518X>  
@@ -564,11 +484,6 @@ Ordered by publication year:
 |2|Biomass to carbon|Ton carbon per ton biomass|Default is 0.46|
 |3|Local currency per USD|USD per unit local currency|If users need economic outputs in USD |
 |4|Fee of external labour|Unit currency per person day||
-
-
-
-
-
 
 
 26
