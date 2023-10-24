@@ -12,7 +12,7 @@ library(leafem)
 library(dplyr)
 library(reshape)
 
-library(randomcoloR)
+# library(randomcoloR)
 library(shinyjqui)
 
 source("params.R")
@@ -677,7 +677,7 @@ server <- function(input, output, session) {
     } else {
       lu$color <- ludf$color[1:nrow(lu)]
       n <- length(lu$color[is.na(lu$color) | lu$color == ""])
-      lu$color[is.na(lu$color) | lu$color == ""] <- randomColor(n)
+      lu$color[is.na(lu$color) | lu$color == ""] <- hcl.colors(n, 'Spectral')
     }
     ## update lu_id on lc table
     lc$lulc <- apply(lc[c("landuse", "landcover")], 1, combine_lulc)

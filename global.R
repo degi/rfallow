@@ -22,8 +22,8 @@ install_load <- function (package1, ...)  {
 
 install_load("shinyjs", "stars", "shinydashboardPlus", "shinyWidgets", 
              "openxlsx2", "RColorBrewer", "areaplot", "mapview", "leaflet",
-             "leafem", "dplyr", "reshape", "randomcoloR", "shinyjqui",
-             "excelR", "fresh", "markdown", "V8")
+             "leafem", "dplyr", "reshape", "shinyjqui",
+             "excelR", "fresh", "markdown")
 
 
 
