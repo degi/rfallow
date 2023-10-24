@@ -20,7 +20,7 @@ install_load <- function (package1, ...)  {
   } 
 }
 
-install_load("shinyjs", "stars", "shinydashboardPlus", "shinyWidgets", 
+install_load("shinyjs", "sf", "stars", "shinydashboardPlus", "shinyWidgets", 
              "openxlsx2", "RColorBrewer", "areaplot", "mapview", "leaflet",
              "leafem", "dplyr", "reshape", "shinyjqui",
              "excelR", "fresh", "markdown")
