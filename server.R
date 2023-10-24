@@ -19,6 +19,32 @@ source("params.R")
 source("RFallow_main.R")
 
 
+install_load <- function (package1, ...)  {   
+  
+  # convert arguments to vector
+  packages <- c(package1, ...)
+  
+  # start loop to determine if each package is installed
+  for(package in packages){
+    
+    # if package is installed locally, load
+    if(package %in% rownames(installed.packages()))
+      do.call('library', list(package))
+    
+    # if package is not installed locally, download, then load
+    else {
+      install.packages(package)
+      do.call("library", list(package))
+    }
+  } 
+}
+
+install_load("shinyjs", "stars", "shinydashboardPlus", "shinyWidgets", 
+             "openxlsx2", "RColorBrewer", "areaplot", "mapview", "leaflet",
+             "leafem", "dplyr", "reshape", "randomcoloR", "shinyjqui",
+             "excelR", "fresh", "markdown")
+
+
 server <- function(input, output, session) {
   options(shiny.maxRequestSize=300*1024^2)
   data_dir = paste0(tempdir(), "/data_temp")
