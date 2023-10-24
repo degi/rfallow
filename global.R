@@ -1,4 +1,32 @@
 ### RFALLOW global variables ########################
+
+install_load <- function (package1, ...)  {   
+  
+  # convert arguments to vector
+  packages <- c(package1, ...)
+  
+  # start loop to determine if each package is installed
+  for(package in packages){
+    
+    # if package is installed locally, load
+    if(package %in% rownames(installed.packages()))
+      do.call('library', list(package))
+    
+    # if package is not installed locally, download, then load
+    else {
+      install.packages(package)
+      do.call("library", list(package))
+    }
+  } 
+}
+
+install_load("shinyjs", "stars", "shinydashboardPlus", "shinyWidgets", 
+             "openxlsx2", "RColorBrewer", "areaplot", "mapview", "leaflet",
+             "leafem", "dplyr", "reshape", "randomcoloR", "shinyjqui",
+             "excelR", "fresh", "markdown")
+
+
+
 library(dplyr)
 
 COLOR_DARK <- "#385624"
@@ -136,9 +164,9 @@ par_scalar_title_df <- data.frame(
          "currency/ton", NA, "currency/ha/year", "currency/ha", "person-day/ha", "person-day/ha", 
          
          NA, "0-1", NA, NA),
-  desc = c("The simulated livelihood options consist of pioneer, early, mature, 
-           and post production. We need to specify the age range for these stages
-           (Note: you may put blank for unlimited max upper bounds)", 
+  desc = c("<p>The simulated livelihood options consist of pioneer, early, mature, 
+           and post production. We need to specify the age range for these stages</p>
+           <p><i>* you may put blank for unlimited max upper bounds</i></p>", 
            "Initial of land cover age", 
            "Soil fertility depletion rate to produce a unit yield and 
            period needed to achieve half of inherent soil fertility", 
