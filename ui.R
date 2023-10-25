@@ -1,11 +1,36 @@
+# library(shiny)
+# library(shinydashboard)
+# library(shinydashboardPlus)
+# library(shinyWidgets)
+# library(fresh)
+# library(shinyjs)
+# library(excelR)
+# library(markdown)
+
+
+#Base GUI
 library(shiny)
+library(shinyjs)
 library(shinydashboard)
 library(shinydashboardPlus)
 library(shinyWidgets)
-library(fresh)
+#Extra GUI
 library(shinyjs)
-library(excelR)
+library(shinyjqui) #drag n drop
+library(openxlsx2) #xls IO
+library(RColorBrewer)
+library(areaplot)
+library(fresh) #color theme
+library(excelR) #table UI
 library(markdown)
+#Map
+library(stars)
+library(mapview)
+library(leaflet)
+library(leafem)
+#Utility
+library(dplyr)
+library(reshape)
 
 
 mytheme <- create_theme(

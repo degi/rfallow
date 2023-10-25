@@ -1,19 +1,27 @@
+#Base GUI
 library(shiny)
-library(stars)
 library(shinyjs)
+library(shinydashboard)
 library(shinydashboardPlus)
 library(shinyWidgets)
-library(openxlsx2)
+#Extra GUI
+library(shinyjs)
+library(shinyjqui) #drag n drop
+library(openxlsx2) #xls IO
 library(RColorBrewer)
 library(areaplot)
+library(fresh) #color theme
+library(excelR) #table UI
+library(markdown)
+#Map
+library(stars)
 library(mapview)
 library(leaflet)
 library(leafem)
+#Utility
 library(dplyr)
 library(reshape)
 
-# library(randomcoloR)
-library(shinyjqui)
 
 source("params.R")
 source("RFallow_main.R")
@@ -1811,7 +1819,11 @@ server <- function(input, output, session) {
     }
     
     output[[table_id]] <- renderExcel({
-      d <- data_view()
+      cid <- c(field_id, iteration_label)
+      d <- data_view()[cid]
+      #TODO: ERROR too many columns!?
+      #print(d)
+      
       n <- ncol(d)
       out_column <- data.frame(
         title= c(field_id_label, iteration_label),
@@ -1912,7 +1924,9 @@ server <- function(input, output, session) {
       }
       par(mar=c(4, 4, 1, 1))
       ptype <- input[[paste0("plottype_out", id)]]
+      if(is.null(ptype)) ptype <- "Stacked area"
       if(ptype == "Stacked area" & !is_single_value) {
+        #TODO: ERROr if only one year iteration!
         areaplot(d_plot, xlab = "Years", ylab = paste(unit, ex_f), col = color, legend = T,
                  args.legend=list(x="topleft", cex=0.8, bty = "o", ncol = 2,
                                   border = "white", bg = "#FFFFFF60", 
