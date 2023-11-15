@@ -30,10 +30,32 @@ install_load("shiny", "bs4Dash", "shinyWidgets",
              "dplyr", "reshape", "yaml", "openxlsx2", "markdown" 
              )
 
+#Base GUI
+library(shiny)
+library(bs4Dash)
+library(shinyWidgets)
+#Extra GUI
+library(shinyjs)
+library(shinyjqui) #drag n drop
+library(RColorBrewer)
+library(areaplot)
+library(fresh) #color theme
+library(excelR) #table UI
+library(thematic)
+#Map
+library(sf)
+library(stars)
+library(mapview)
+library(leaflet)
+library(leafem)
+#Utility
+library(dplyr)
+library(reshape)
+library(yaml)
+library(openxlsx2) #xls IO
+library(markdown)
 
-# 
-# library(dplyr)
-# library(yaml)
+
 
 
 COLOR_DARK <- "#385624"
