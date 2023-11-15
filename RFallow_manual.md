@@ -1,37 +1,6 @@
 ﻿# R-FALLOW: a model of rural landscape dynamics and economic-ecological trade-off of land use scenario
-
-## A User’s Manual
-
-
-
-### World Agroforestry (ICRAF)
-
-### 2023
-
-
-
-**Disclaimer and Copyright**
-
-Although efforts have been made to incorporate relevant process knowledge on a range of interactions, a computer model is not more (and not less) than research and supporting tool. Model’s prospective outputs may help in developing specific hypotheses for research, in exploring potential future options on development strategies, but they should not be used as authoritative statements per se.
-
-Copy right, but do not copy wrong. The R-FALLOW model was developed on the basis of publicly funded research at the World Agroforestry (ICRAF) and may be used for non-commercial research purposes in the interest of research or governmental institution as well as farmers of the world. 
-
-\-------------------------------------------------------------------------------- 
-
-For further information, consultation, and technical support please contact: 
-
-Rachmat Mulia (<r.mulia@cifor-icraf.org>)
-
-Betha Lusiana (<b.lusiana@cifor-icraf.org>) 
-
-**Suggested citation:**
-
-Mulia R, Asmara DH, Lusiana B, Salvan GAR, and van Noordwijk M. 2023. R-FALLOW: a model of rural landscape dynamics and economic-ecological trade-off of land use scenario. A User’s Manual. World Agroforestry (ICRAF), Bogor, Indonesia and Los Banos, the Philippines. 
-
-**Acknowledgment**
-
-The R-FALLOW and this user’s manual are produced mainly thanks to the financial support from the Sustainable Farming in Tropical Asian Landscapes (SFITAL) Project funded by the International Fund for Agricultural Development (IFAD) and MARS Incorporation.
-## **Table of Contents**
+------------------------------
+## Table of Contents
 
 [1.	What is R-FALLOW?](#_toc148435188)
 
@@ -77,13 +46,14 @@ The R-FALLOW and this user’s manual are produced mainly thanks to the financia
 
 [Annex 1 Complete list of input maps and parameters required by R-FALLOW](#_toc148435209)
 
-## <a name="_toc148435188"></a>**What is R-FALLOW?**
+------------------------------
+## <a name="_toc148435188"></a>What is R-FALLOW?
 
 R-FALLOW (**F**orest, **A**groforest, **L**ow-value **L**and **O**r **W**aste?) is a model of rural landscape dynamics and related economic-ecological trade-off developed using the R language. It has unique characteristics as compared to other rural landscape models mainly because it simulates landcover change at landscape (e.g., district or province) scale *driven by smallholder farmers' decision on labour, financial and land allocation to land use options*. Therefore, it considers smallholder farmers as the main agent of land use dynamics, along with possible land use change over State’s or concession lands or conversion of forest lands. Existing models of rural landscape dynamics usually create projection of future land uses using e.g., land use transition matrix. 
 
 The initial version of the FALLOW model was developed by van Noordwijk (2002) using the Stella programming platform, which was then translated into the PC Raster version (e.g., see Suyamto et al. 2009) to better handle the spatial input information. More recently, to better facilitate model’s parametrisation and a possibility for the model to ‘communicate’ with other models developed using the contemporary R or Java language, the FALLOW model is translated into the R programming language. The FALLOW model has been used as a supporting tool to assess projected impacts and analyse economic-ecological trade-off among land use scenarios in different countries especially in Southeast Asia such as Indonesia, the Philippines, and Vietnam (van Noordwijk et al. 2008, Lusiana et al. 2012, Mulia et al. 2013, Tata et al. 2013, Mulia et al. 2018).
 
-## <a name="_toc148435189"></a>**Why is it important?**
+## <a name="_toc148435189"></a>Why is it important?
 
 There are four possible directions where an implementation of land use strategies can lead to (Figure 1). For example, a strategy which prioritizes an economic benefit might lead to a better livelihood of rural population relative to the baseline condition but brings about a decline in an ecological indicator (namely, the ‘Red Development’ strategy in Figure 1). An ideal land use strategy should bring about improvement both in socio-economic and ecological goals (the ‘Green Development’ in Figure 1), relative to the baseline.   
 
@@ -91,7 +61,7 @@ There are four possible directions where an implementation of land use strategie
 
 R-FALLOW is important because it can be used to assess possible impacts of land use scenarios which accommodate local stakeholders’ preference and decisions on labour, financial and land allocation for future land uses, and possible land use change over State’s or concession lands or conversion of forest lands. The key economic indicator projected by the model is income per capita of smallholder farmers[^1], while the key ecological indicator is the total aboveground carbon storage at landscape level. Thanks to the indicators, the model can be used to analyse a trade-off among possible land use scenarios, relative to the baseline, as inputs to develop sensible land use strategies. 
 
-## <a name="_toc148435190"></a>**Who can use R-FALLOW?**
+## <a name="_toc148435190"></a>Who can use R-FALLOW?
 The model can be used by research and development actors, academics or students, or local authorities who are interested in assessing the impacts of land use scenarios and local stakeholders’ decision in <a name="_hlk147416673"></a>labour, financial and land allocation on income per capita of smallholder farmers and aboveground carbon storage of rural landscape. In a more detailed, the model is suitable for those who are interested in the following possible research questions:
 
 - Which capitals (labours, money, and land) are constraining the adoption or expansion of certain land use options by smallholder farmers over the simulated landscape?
@@ -102,7 +72,7 @@ The model can be used by research and development actors, academics or students,
 - Have the simulate community been involved in the collection of non-timber forest products and if the income from the collection could substantially increase household’s income?
 - In a possible presence of natural disaster that might affect partial or the whole area over the landscape, what will be the consequence on the working force and investment to agricultural land uses?
 
-## <a name="_toc148435191"></a>**Brief description of FALLOW modelling principles**
+## <a name="_toc148435191"></a>Brief description of FALLOW modelling principles
 As highlighted in <a name="_hlk148012627"></a>Lusiana et al. (2012), land use change model to understand the trade-offs between economic and ecological purposes might not be necessarily complex, in contrast to models which simulate detailed biophysical interactions between crops, soils, and climate. However, it should consider important drivers of land use change to include household economics and its influence on the household’s decision making and agricultural productivity. A desirable land use change model should be generic and flexible enough for possible uses at various sites and site-specific conditions.
 
 R-FALLOW treats land use and land cover simultaneously, assuming that land use dynamics are a major determinant of land-cover change over the simulated landscape. As summarized by Lusiana et al. (2012), the interactions between different factors or modules in FALLOW start with the changes in soil fertility at farm level wherein soil fertility depletes during cropping periods and recovers during fallow periods. The actual fertility determines agricultural yield and total production from agricultural farms, and along with non-timber forest products, contribute to food sufficiency and household’s economic capital. The population dynamics affects labour force as well as demand for food. Meanwhile, local stakeholders’ strategic decision on labour, financial capital, and land allocation determines land use changes and land cover mosaic over the simulated landscape.
@@ -116,11 +86,11 @@ In the model, we can simulate smallholder farmers which prioritize more profitab
 
 R-FALLOW has a default spatial resolution of 1 ha and temporal resolution of 1 year. Therefore, the model simulates annual decision of smallholder farmers in labour, financial capital, and land allocation. It is suitable to simulate land use change at meso-scale, for example district or province level.
 
-## <a name="_toc148435192"></a>**Preparing inputs for model simulation**
+## <a name="_toc148435192"></a>Preparing inputs for model simulation
 
 R-FALLOW requires two types of inputs: spatial inputs in the form of maps and non-spatial inputs or parameter values. 
 
-### <a name="_toc148435193"></a>**5.1 Spatial inputs**
+### <a name="_toc148435193"></a>5.1 Spatial inputs
 
 The recommended format of input maps for R-FALLOW is tif, which can be produced using any geographical information system (GIS) software. The minimum input maps[^3] that should be prepared for running the model are listed in Table 1. **Please note that all input maps for R-FALLOW should have a consistent geographic projection**. Annex 1 provides a complete list of input maps for R-FALLOW and explains that several input maps should be produced for each crop product or cultivation practice. For example, the land suitability map should be produced for each cultivation practice simulated using the model. Another example, the map of distance to processing industries should be produced for the main product of the cultivation practices. 
 
@@ -211,9 +181,9 @@ There are at minimum 8 biophysical and demographic inputs required by R-FALLOW (
 |7|Fraction of productive farm labours |0-1|Fraction of productive farm labours, including household’s labours, relative to the total population of the simulated site|
 |8|Annual working days|Person day per year|Average annual working days|
 
-## <a name="_toc148435199"></a>**How to open and parameterize R-FALLOW**
+## <a name="_toc148435199"></a>How to open and parameterize R-FALLOW
 
-### <a name="_toc148435200"></a>**6.1 How to open the model**
+### <a name="_toc148435200"></a>6.1 How to open the model
 
 There are two possibilities: using or without internet connection. 
 
@@ -266,7 +236,7 @@ Please note that, to be able to open R-FALLOW using the script and without inter
 
 <a name="_ref148363361"></a><a name="_toc148435232"></a>Figure 7 R scripts to open R-FALLOW without internet connection
 
-### <a name="_toc148435201"></a>**6.2 How to parameterize the model**
+### <a name="_toc148435201"></a>6.2 How to parameterize the model
 
 #### <a name="_toc148435202"></a>6.2.1 Module “Initial Input”
 
@@ -368,7 +338,7 @@ The model can display the outputs either in chart, table, or map. For example, F
 
 <a name="_ref148280951"></a><a name="_toc148435251"></a>Figure 26 Examples of outputs of R-FALLOW
 
-## <a name="_toc148435208"></a>**9. Useful references** 
+## <a name="_toc148435208"></a>9. Useful references 
 Ordered by publication year:
 
 - van Noordwijk M. 2002. Scaling trade-offs between crop productivity, carbon stocks and biodiversity in shifting cultivation landscape mosaics: the FALLOW model. Ecol. Model. 149, 113–126. Available at: <https://www.sciencedirect.com/science/article/abs/pii/S030438000100518X>  

@@ -20,19 +20,26 @@ install_load <- function (package1, ...)  {
   } 
 }
 
-install_load("shinyjs", "sf", "stars", "shinydashboardPlus", "shinyWidgets", 
-             "openxlsx2", "RColorBrewer", "areaplot", "mapview", "leaflet",
-             "leafem", "dplyr", "reshape", "shinyjqui",
-             "excelR", "fresh", "markdown")
+install_load("shiny", "bs4Dash", "shinyWidgets", 
+             # GUI extra
+             "shinyjs", "shinyjqui", "RColorBrewer", "areaplot",
+             "fresh", "excelR", "thematic",
+             # map
+             "sf", "stars", "mapview", "leaflet", "leafem", 
+             # utility
+             "dplyr", "reshape", "yaml", "openxlsx2", "markdown" 
+             )
 
 
+# 
+# library(dplyr)
+# library(yaml)
 
-library(dplyr)
 
 COLOR_DARK <- "#385624"
 COLOR_LIGHT <- "#C6E0B3"
 
-
+ex_pars <- read_yaml("examples/example.yaml")
 
 
 landuse_list <- c("Forest", "Tree-based system", "Agriculture", "Settlement")

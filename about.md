@@ -1,3 +1,10 @@
+### R-Fallow
+
+* Version: Beta2
+* Latest update: 15-Nov-2023
+* Source code: https://github.com/degi/rfallow
+* Online test: https://degi.shinyapps.io/rfallow/ 
+
 ### Software developers:
 
 Degi Harja Asmara

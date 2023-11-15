@@ -1,37 +1,17 @@
-#Base GUI
-library(shiny)
-library(shinyjs)
-library(shinydashboard)
-library(shinydashboardPlus)
-library(shinyWidgets)
-#Extra GUI
-library(shinyjs)
-library(shinyjqui) #drag n drop
-library(openxlsx2) #xls IO
-library(RColorBrewer)
-library(areaplot)
-library(fresh) #color theme
-library(excelR) #table UI
-library(markdown)
-#Map
-library(stars)
-library(mapview)
-library(leaflet)
-library(leafem)
-#Utility
-library(dplyr)
-library(reshape)
+# library(shinydashboard)
+# library(shinydashboardPlus)
 
 
 source("params.R")
 source("RFallow_main.R")
 
 
-
-
-
 server <- function(input, output, session) {
   options(shiny.maxRequestSize=300*1024^2)
+  useAutoColor()
+  
+  
+  
   data_dir = paste0(tempdir(), "/data_temp")
   v_inp <- reactiveValues(def_file = NULL, def_df = NULL, params_path = NULL,
                           fallow_params = NULL, initlc_file = NULL, 
@@ -54,6 +34,8 @@ server <- function(input, output, session) {
                            agentprop_df = agentprop_df,
                            disaster_df = disaster_df,
                            converter_df = converter_df)
+  
+  pheight <- reactiveValues()
 
   color_list <- c(brewer.pal(9, "Set1"), brewer.pal(8, "Set2"), brewer.pal(12, "Set3"))
   pallete_def <- list()  
@@ -121,6 +103,10 @@ server <- function(input, output, session) {
     print(paste("Extracting the files:", input$upload_parameter$name))
     update_progress_input(1, "Extracting the files")
     dpath <- input$upload_parameter$datapath
+    upload_parameter(dpath)
+  })
+  
+  upload_parameter <- function(dpath) {  
     file_list <- NULL
     try(file_list <- unzip(dpath, list = TRUE), silent = T)
     if(is.null(file_list)) {
@@ -170,7 +156,8 @@ server <- function(input, output, session) {
     enable("run_button")
     # unlink(data_dir, recursive = TRUE)
     update_progress_input(100, "Parameters upload completed")
-  })
+    updateTabItems(session, inputId ="sidemenu", selected = "inp_landcover")
+  }
   
   observeEvent(input$import_parameter, {
     print(paste("Extracting the files:", input$import_parameter$name))
@@ -214,7 +201,9 @@ server <- function(input, output, session) {
     import_parameter(v_inp$def_file, v_inp$params_path)
     removeModal()
   })
-
+  
+  
+  
   update_progress_input <- function(value, desc = NULL) {
     updateProgressBar(session, "progress_input", value, title = desc)
   }
@@ -240,6 +229,7 @@ server <- function(input, output, session) {
     enable("run_button")
     print("run enable")
     # unlink(data_dir, recursive = TRUE)
+    updateTabItems(session, inputId ="sidemenu", selected = "inp_landcover")
   }
   
   apply_parameter <- function(p) {
@@ -260,6 +250,55 @@ server <- function(input, output, session) {
       HTML(paste("PCRaster file:<b>", basename(v_inp$def_file), "</b>")),
     )
   })
+  
+  library(utils)
+  
+  ###### EXAMPLE PARAMETERS #########################
+  
+  output$example_parameters <- renderUI({
+
+    tagList(
+      lapply(ex_pars, function(x) {
+        imgfile <- paste0("images/",x$file, '.png')
+        plotfile <- paste0("www/", imgfile)
+        if(!file.exists(plotfile)) {
+          zfile <- paste0("examples/", x$file)
+          unzip(zfile, files="initlc.tif")
+          m <- read_stars("initlc.tif")
+          # pal <- get_map_color(m)
+          par(bg=NA)
+          png(plotfile, width = 300, height = 300)
+          plot(m, key.pos = NULL, main = NULL)#, col = pal, breaks = "equal")
+          dev.off()
+        }
+        userPost(
+          collapsed = T,
+          image = imgfile,
+           author = x$label,
+           description = x$desc,
+          div(style = "float: right;", 
+          
+          tags$img(height = 100, width = 100, src = imgfile, 
+                   style = "margin: 10px;"), tags$br(),
+                   # border-radius:5px; border:10px solid #FFF;box-shadow: 3px 3px 8px 3px #00000050;"),
+          actionButton(paste0("ex_", x$file), "Load parameter")
+          ),
+          div(tags$b("Link:"), tags$a(x$link, href = x$link)),
+          div(tags$b("Reference:"), x$ref),
+          div(tags$b("DOI:"), tags$a(x$DOI, href = x$DOI))
+          
+        )
+
+      })
+    )
+  })
+  
+  lapply(ex_pars, function(x){
+    observeEvent(input[[paste0("ex_", x$file)]], {
+      upload_parameter(paste0("examples/", x$file))
+    })
+  })
+  
   
   ############################################################
   ### IMPORT FALLOW PARAMS ###################################
@@ -443,8 +482,8 @@ server <- function(input, output, session) {
             plot(m, col = map_color$color, breaks = c(-1, map_color$lc_id),
                  key.pos = NULL, main = NULL)
           }
-        })
-        plotOutput("mapplot_plain")
+        }) #, height = map_height()
+        plotOutput("mapplot_plain",height = map_height())
       } else {
         mv <- NULL
         if(is.null(map_color)) {
@@ -466,13 +505,28 @@ server <- function(input, output, session) {
           })
         }
         if(!is.null(mv)) output$mapplot <- renderLeaflet(mv@map)
-        leafletOutput("mapplot")
+        # leafletOutput("mapplot")
+         # div(style = "height: 300px; width: 100%;", # position: relative;",
+        leafletOutput("mapplot", height = map_height(), width = "100%")
+          # )
+        
       }
     })
     lc_area_df <- as.data.frame(table(m))
     names(lc_area_df) <- c("lc_id", "area") 
     v_inp$lc_area_df <- lc_area_df
   }
+  
+  map_height <- reactiveVal("350px")
+  
+  observeEvent(input$box_map_display$visible , {
+    if(input$box_map_display$maximized) {
+      map_height("90vh")
+    } else {
+      map_height(350)
+    }
+    # js$getDim("box_map_display")
+  })
 
   observeEvent(input$refresh_lcmap, view_initlc_map())
 
@@ -496,7 +550,7 @@ server <- function(input, output, session) {
     ids_ex_f <- paste(exc_ids_df$lc_id, collapse = ', ')
     lg_label <-  c(growth_stage_list, "None")
     lc_df[is.na(lc_df$growth_stage), "growth_stage"] <- ""
-
+    
     if(nrow(lc_df[lc_df$growth_stage == "",] > 0))
       lc_df[lc_df$growth_stage == "",]$growth_stage <- "None" 
     bar_df <- as.data.frame(cast(lc_df, growth_stage~lu_short, sum, value = "area"))
@@ -515,12 +569,14 @@ server <- function(input, output, session) {
       div(paste("Excluded ids:", ids_ex_f))
     ))
     c <- color_list[1:length(lg_label)]
-    par(mar = c(8,4,0.5,1), fg="white", col.lab = "white", col.axis	= "white")
+    max_labl <- 0.5+max(nchar(colnames(bar_df)))/2
+    par(mar = c(max_labl, 4, 1,0.5)) 
     b <- as.matrix(bar_df)
-    barplot(b, col = c, border="white", las=3, ylab = "Area (ha)")
+    barplot(b, col = c, las=3, ylab = "Area (ha)") 
     legend("topright", legend = rev(lg_label), fill = rev(c), 
-           border = "white", bg = "#00000020", box.lwd = 0, title = "Stages")
-  }, bg="transparent")
+           # border = "white", 
+           bg = "#FFFFFF40", box.lwd = 0, title = "Stages")
+  }, bg=NA, height = 300)
 
   ## Create land cover table 
   output$inp_initlc_list <- renderExcel({
@@ -546,7 +602,9 @@ server <- function(input, output, session) {
     names(df_input) <- lc_field_display
     df_input <- transform(df_input, lc_id = as.numeric(lc_id))
     isolate(df <- params$landcover_df)
+
     params$landcover_df <- generate_LU_IDS(df_input)
+
     if(!all(df$color %in% df_input$color)) show_notif_palette()
     ids <- df_input[!is.na(df_input$lc_id), "lc_id"]
     if(length(ids) != length(unique(ids)))
@@ -652,17 +710,21 @@ server <- function(input, output, session) {
       isolate(params$landuse_df <- params$landuse_df[0,])
       return(lc)
     }
+    
     short_df <- data.frame(landuse = landuse_list, landuse_short)
     lu <- merge(lu, short_df, by = "landuse", all.x = T)
     lu$lu_group <- lu$landuse 
     lu$landuse <- apply(lu[c("lu_group", "landcover")], 1, combine_lulc)
     lu$lu_short <- apply(lu[c("landuse_short", "landcover")], 1, combine_lulc)
+    
     #set the lu_id
     lu$lu_id <- NA
     m1 <- 0
     m2 <- 0
-    luset <- lu[grepl("set", lu$landuse,ignore.case=T),]
-    lufor <- lu[grepl("for", lu$landuse,ignore.case=T),]
+    # luset <- lu[grepl("set", lu$landuse,ignore.case=T),]
+    # lufor <- lu[grepl("for", lu$landuse,ignore.case=T),]
+    luset <- lu[lu$lu_group == "Settlement",]
+    lufor <- lu[lu$lu_group == "Forest",]
     if(nrow(luset) > 0) {
       lu[lu$landuse %in% luset$landuse, "lu_id"] <- c(1:nrow(luset))
       m1 <- max(lu$lu_id, na.rm = T)
@@ -671,6 +733,7 @@ server <- function(input, output, session) {
       lu[lu$landuse %in% lufor$landuse, "lu_id"] <- c((m1+1):(m1+nrow(lufor)))
       m2 <- max(lu$lu_id, na.rm = T)
     }
+    
     lu[is.na(lu$lu_id), "lu_id"] <- c((max(m1,m2)+1):nrow(lu))
     lu <- transform(lu, lu_id = as.numeric(lu_id))
     lu <- lu[order(lu$lu_id),]
@@ -1265,12 +1328,10 @@ server <- function(input, output, session) {
       output[[out_id]] <- renderPlot({
         suppressWarnings(
           suppressMessages(
-            # plot(map, main = NULL, col = pal, breaks = 'equal')))
-        
             tryCatch({
-              plot(m, main = NULL, col = pal, breaks = 'equal')
+              plot(map, main = NULL, col = pal, breaks = 'equal')
             }, error=function(cond) {
-              plot(m, main = NULL, breaks = 'equal')
+              plot(map, main = NULL, breaks = 'equal')
             })
         ))
       })
@@ -1286,15 +1347,11 @@ server <- function(input, output, session) {
   
   output$map_display <- renderUI({
     if(is.null(disp_map$map)) return()
-    box(id = "mapbox", title = disp_map$title, disp_map$map, collapsible = T,  width = 12, closable = T)
+    box(id = "mapbox", title = disp_map$title, disp_map$map, collapsible = T,  
+        width = 12, closable = T)
   })
 
-  # observeEvent(input$mapbox$visible, {
-  #   collapsed <- if (input$mapbox$collapsed) "collapsed" else "uncollapsed"
-  #   visible <- if (input$mapbox$visible) "visible" else "hidden"
-  #   message <- paste("My box is", collapsed, "and", visible)
-  #   showNotification(message, type = "warning", duration = 1500)
-  # })
+
   
   ##################################################
   ## SCALAR INPUT ############################
@@ -1675,24 +1732,27 @@ server <- function(input, output, session) {
   
   output$output_selector <- renderUI({ 
 
-      div(class = "greenbox",
+      div(class = "greenbox", style = "padding-bottom: 0px;", 
         fluidRow(
-          column(4, 
+          column(4,
             pickerInput(
-            inputId = "output_select", label = "Output", 
+            inputId = "output_select", label = "Output", inline = F, width = "fit",
             choices = list(out_lc_label,
                            Total = sort(out_df$label[out_df$table == "out_val_df"]),
                            Livelihood = sort(out_df$label[out_df$table != "out_val_df"]),
-                           Maps = sort(out_map_df$label) ))),
-          column(2, pickerInput(inputId = "output_width", label = "Width", 
-                                choices = list("50%", "100%"))
-          ),
-          column(2, style="margin-top: 25px;", 
-                 actionButton("add_output_button", "Display", icon = icon("laptop-medical"))),
-          column(4, div(style = "text-align:center;  background:#A9D08F;
-                        padding:10px; border-radius:8px; width:140px; margin:auto;", 
-                        tags$b("Save output data"),
-                        downloadButton("download_output_table", "Download")))
+                           Maps = sort(out_map_df$label) )
+            )),
+          # column(2, pickerInput(inputId = "output_width", label = "Width", 
+                                # choices = list("50%", "100%"))
+          # ),
+          column(4, actionButton("add_output_button", "Display output", 
+                                 icon = icon("laptop-medical"),
+                                 size=NULL, style = "width:100%")),
+          # column(4, div(style = "text-align:center;  background:#38562440;
+          #               padding:10px; border-radius:8px; width:100%; margin:auto;", 
+          #               tags$b("Save output data"),
+          #               downloadButton("download_output_table", "Download")))
+          column(4, downloadButton("download_output_table", "Save output data", style = "width:100%"))
         )
       )
   })
@@ -1730,12 +1790,14 @@ server <- function(input, output, session) {
       odf <- out_df[out_df$label == input$output_select,]
       if(nrow(odf) == 0) odf <- list(unit = "ha", desc = "Total land cover area")
       ui_out <- generate_output_table_box(id, input$output_select, 
-                                          input$output_width, odf$unit, odf$desc)
+                                          odf$unit, odf$desc)
     } else if(input$output_select %in% out_map_df$label) {
-      ui_out <- generate_output_map_box(id, input$output_select, input$output_width)
+      ui_out <- generate_output_map_box(id, input$output_select)
     }
-    insertUI(selector = "#add_output", where = "afterEnd", ui = ui_out)
-    out_box_list(ids)
+    if(!is.null(ui_out)) {
+      insertUI(selector = "#add_output", where = "afterBegin", ui = column(width = 6, ui_out))
+      out_box_list(ids)
+    }
   })
   
   observe({
@@ -1755,9 +1817,10 @@ server <- function(input, output, session) {
   #################################################################
   ########### Output table box ####################################
   #################################################################
+  
   msg_nodata <- function(title) paste("No data on", title)
   
-  generate_output_table_box <- function(id, title, width, unit = "", desc = "") {
+  generate_output_table_box <- function(id, title, unit = "", desc = "") {
     table_id <- paste0("table_out", id)
     #prepare the table
     d_out <- v_out$fallow_output
@@ -1819,11 +1882,11 @@ server <- function(input, output, session) {
     }
     
     output[[table_id]] <- renderExcel({
-      cid <- c(field_id, iteration_label)
-      d <- data_view()[cid]
+      # cid <- c(field_id, iteration_label)
+      # d <- data_view()[cid]
       #TODO: ERROR too many columns!?
       #print(d)
-      
+      d <- data_view()
       n <- ncol(d)
       out_column <- data.frame(
         title= c(field_id_label, iteration_label),
@@ -1843,7 +1906,9 @@ server <- function(input, output, session) {
     observeEvent(input[[paste0("plotgroup", id)]], {
       if(is_single_value) return()
       updatePrettyCheckbox(session, paste0("plotdetailgroup", id), value = F)
-      d <- df[c(field_id, iteration_label)]
+      col_fields <- c(field_id, iteration_label) 
+
+      d <- df[col_fields]
       if(input[[paste0("plotgroup", id)]]) {
         d <- df[c("lu_group", iteration_label)]
         d <- aggregate(d[iteration_label], by = list(d$lu_group), FUN = sum, na.rm = T)
@@ -1924,6 +1989,7 @@ server <- function(input, output, session) {
       }
       par(mar=c(4, 4, 1, 1))
       ptype <- input[[paste0("plottype_out", id)]]
+      if(length(iteration_label) == 1) ptype <- "Line"
       if(is.null(ptype)) ptype <- "Stacked area"
       if(ptype == "Stacked area" & !is_single_value) {
         #TODO: ERROr if only one year iteration!
@@ -1939,10 +2005,11 @@ server <- function(input, output, session) {
                  cex=0.8, border = "white", bg = "#FFFFFF60", box.lwd = 0,
                  inset=.05)
       }
+    }, height = function() {
+      session$clientData[[paste0("output_plot_out", id, "_width")]]*0.7
     }) 
     
     output[[paste0("download_out", id)]] <- downloadHandler(
-      
       filename = function() {
         paste(paste0("data-", title, "-"), Sys.Date(), ".csv", sep="")
       },
@@ -1952,8 +2019,8 @@ server <- function(input, output, session) {
       }
     )
     
-    box(id = id, title = title, closable = T, collapsible = T,
-        width = ifelse(width == "100%", 12, 6),
+    box(id = id, title = title, closable = T, collapsible = T, maximizable = T,
+        width = 12,
         dropdownMenu = boxDropdown(icon = icon("download"),
            boxDropdownItem(
              downloadLink(paste0("download_out", id), "Download data (.csv)"))
@@ -1966,7 +2033,9 @@ server <- function(input, output, session) {
             choices = c("Stacked area", "Line"), selected = "Stacked area",
             icon = icon("check"), inline = TRUE, status = "warning", animation = "jelly"
           ),
+          
           tags$b("Group by"),
+          
           prettyCheckbox(
             inputId = paste0("plotgroup", id), label = "Land use type", 
             icon = icon("check"), status = "warning", animation = "jelly"
@@ -1986,7 +2055,7 @@ server <- function(input, output, session) {
           HTML(desc),
           tabsetPanel(
             tabPanel("Plot", icon = icon("chart-simple"), 
-                     plotOutput(paste0("plot_out",id))),
+                     plotOutput(paste0("plot_out",id), height = "auto")),
             tabPanel("Table", icon = icon("table-list"), 
                      p("Unit:", unit), excelOutput(table_id, height = "100%"))
           )
@@ -1996,7 +2065,7 @@ server <- function(input, output, session) {
 
   ########### Output Map Box #######################
   
-  generate_output_map_box <- function(id, title, width) {
+  generate_output_map_box <- function(id, title) {
     m_id <- out_map_df$id[out_map_df$label == title]
     d_out <- v_out$fallow_output
     if(is.null(d_out)) return()
@@ -2028,6 +2097,8 @@ server <- function(input, output, session) {
       } else { 
         plot(m[t], col = map_color$color, breaks = c(-1, map_color$id), main = NULL)
       }
+    }, height = function() {
+      session$clientData[[paste0("output_map_out", id, "_width")]]*0.7
     }) 
     
     output[[paste0("download_tif_out", id)]] <- downloadHandler(
@@ -2046,21 +2117,23 @@ server <- function(input, output, session) {
       },
       contentType = "application/zip"
     )
-    
-    box(id = id, title = title, closable = T, collapsible = T,
-        width = ifelse(width == "100%", 12, 6),
+
+    box(id = id, title = title, closable = T, collapsible = T, maximizable = T,
+        width = 12,
         dropdownMenu = 
           boxDropdown(
             icon = icon("download"),
             boxDropdownItem(downloadLink(paste0("download_tif_out", id),
                                          "Download the maps"))
         ),
-        plotOutput(paste0("map_out",id)),
+        plotOutput(paste0("map_out",id), height = "auto"),
         sliderInput(paste0("slidertime",id), "Simulation year", 
                     min = 1, max = input$simtime, 
                     value = input$simtime, step = 1)
     )
   }
+  
+  
 
 }
 

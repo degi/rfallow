@@ -4,24 +4,27 @@
 .jexcel {
     border-right: 1px solid transparent;
     border-bottom: 1px solid transparent;
+    background-color: transparent;
   }
 
 
-
+/* 
 .jexcel>div>table>thead {
-    background-color: #fff
+    background-color: #fff;
 }
+*/
 
 .jexcel>div>table {
     border-left: 1px solid transparent;
     border-right: 1px solid transparent;
     border-bottom: 2px solid #ccc;
+    
 }
 
 .jexcel>div>table>thead>tr>td {
     border-right: 0px solid transparent;
     border-bottom: 3px solid #ccc;
-    background-color: #FFF;
+    background-color: #ffffff20;
     padding: 6px;
     font-weight: 600; 
     border-left: 0px solid transparent;
@@ -32,6 +35,7 @@
 .jexcel>div>table>thead {
     border-left: 1px solid transparent;
     border-right: 1px solid transparent;
+    
 }
 
 .jexcel>div>table>tbody>tr>td {
@@ -40,6 +44,7 @@
     border-left: 0px solid transparent;
     border-top: 1px solid transparent;
     border-bottom: 1px solid #ccc;
+    
 }
 
 .jexcel>div>table>tbody>td.edition {
@@ -48,7 +53,7 @@
 }
 
 .jexcel>div>table>tbody>tr>td:first-child {
-    background-color: #F8F8F8;
+    background-color: #F8F8F810;
     font-size: 0px;
     color: #ccc;
     width: 0%;
@@ -61,7 +66,12 @@
 }
 
 .jexcel>div>table>thead>tr>td.selected {
-    background-color: #eee
+    background-color: #eeeeee50
+}
+
+.jexcel > tbody > tr > td.readonly
+{
+    color: #96C676;
 }
 
 /*# sourceMappingURL=jquery.jexcel.bootstrap.min.css.map */

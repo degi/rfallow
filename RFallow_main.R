@@ -199,6 +199,7 @@ runRFallow <- function(params,
   names(agentprop_df)[1] <- "agent"
 
   ###########################################
+  
   out_lc_df <- NULL
   out_ll_df <- NULL
   out_val_df <- NULL
@@ -1203,8 +1204,10 @@ runRFallow <- function(params,
         out_map[[m_id]] <- c(m, m_new)
       }
     }
-      
-    ####### OUTPUT #############
+    
+    ##################################  
+    ############# OUTPUT #############
+    ##################################
 
     olc <- lcarea_df[c("lc_id",	"area")]
     olc$iteration <- time
@@ -1261,8 +1264,13 @@ runRFallow <- function(params,
              totestcost, totpop, totagb, totagc, firearea)
       out_val_df <- rbind(out_val_df, v)
     } 
+    
     if(!is.null(progress_detail)) progress_detail(100, "Finish iteration")
+
   }
+  #########################################
+  ######## END OF LOOP ####################
+  #########################################
   
   time_elapsed <- round(Sys.time() - start_time, 2)
   if(!is.null(progress_iteration)) {

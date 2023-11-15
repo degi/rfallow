@@ -1,58 +1,83 @@
+# #Base GUI
 # library(shiny)
-# library(shinydashboard)
-# library(shinydashboardPlus)
-# library(shinyWidgets)
-# library(fresh)
 # library(shinyjs)
-# library(excelR)
+# # library(shinydashboard)
+# # library(shinydashboardPlus)
+# library(bs4Dash)
+# library(shinyWidgets)
+# #Extra GUI
+# library(shinyjs)
+# library(shinyjqui) #drag n drop
+# library(openxlsx2) #xls IO
+# library(RColorBrewer)
+# library(areaplot)
+# library(fresh) #color theme
+# library(excelR) #table UI
 # library(markdown)
+# 
+# library(thematic)
+# 
+# #Map
+# library(stars)
+# library(mapview)
+# library(leaflet)
+# library(leafem)
+# #Utility
+# library(dplyr)
+# library(reshape)
+# library(yaml)
 
 
-#Base GUI
-library(shiny)
-library(shinyjs)
-library(shinydashboard)
-library(shinydashboardPlus)
-library(shinyWidgets)
-#Extra GUI
-library(shinyjs)
-library(shinyjqui) #drag n drop
-library(openxlsx2) #xls IO
-library(RColorBrewer)
-library(areaplot)
-library(fresh) #color theme
-library(excelR) #table UI
-library(markdown)
-#Map
-library(stars)
-library(mapview)
-library(leaflet)
-library(leafem)
-#Utility
-library(dplyr)
-library(reshape)
+thematic_shiny(bg = NA)
 
-
-mytheme <- create_theme(
-  adminlte_color(
-    light_blue = COLOR_DARK
-  ),
-  adminlte_sidebar(
-    dark_bg = COLOR_LIGHT,
-    dark_hover_bg = "#A9D08F",
-    dark_hover_color = "#000",
-    dark_color = COLOR_DARK,
-    dark_submenu_color = COLOR_LIGHT, #"#D1EDC0",
-    dark_submenu_hover_color = "#FFF",
-    dark_submenu_bg = COLOR_DARK #"#5A6E2E" 
+theme <- create_theme(
+  bs4dash_vars(
+    gray_100 = "#E1EED7",
+    gray_200 = "#CFE5C1",
+    gray_300 = "#B4D69D",
+    gray_400 = "#A5CE8A",
+    gray_500 = "#89BF65",
+    gray_600 = "#689F43",
+    gray_700 = "#4A712F",
+    gray_800 = "#334F21",
+    gray_900 = "#253918",
+    gray_x_light = "#385624",
+    blue = "#5E913D"
     
   ),
-  adminlte_global(
-    content_bg = "#F1FFEB",
-    box_bg = "#FFF", 
-    info_box_bg = "#E0FFD1"
+  bs4dash_layout(
+    main_bg = "#F0F7EB"
+  ),
+ 
+  bs4dash_sidebar_light(
+    bg = "#D2E6C4",
+    hover_bg = "#96C676",
+    color = "#385624",
+    hover_color = "#000",
+    submenu_bg = "#C3DEB1",
+    submenu_color = "#385624",
+    submenu_hover_bg = "#FFF",
+    submenu_active_color = "#000",
+    submenu_active_bg = "#F0F7EB"
+  ),
+  
+  bs4dash_sidebar_dark(
+    bg = "#1C2B12",
+    # hover_bg = NULL,
+    # color = NULL,
+    # hover_color = NULL,
+    # active_color = NULL,
+    # submenu_bg = NULL,
+    # submenu_color = NULL,
+    # submenu_hover_color = NULL,
+    # submenu_hover_bg = NULL,
+    # submenu_active_color = NULL,
+    submenu_active_bg = "#D2E6C4"
   )
+  
+  
 )
+
 
 create_scalar_tab <- function(title, table){
   tagList(h2(title), hr(class = "green"),
@@ -76,21 +101,50 @@ create_scalar_tab <- function(title, table){
   )
 }
 
-ui <- dashboardPage(title = "R-Fallow",
+jsCode <- "shinyjs.getDim = function(id){
+  const elem = document.getElementById(id);
+  var el = $('#' + id);
+  let width = elem.clientWidth;
+  let height = elem.clientHeight;
+  Shiny.onInputChange('el_height', height);
+  Shiny.onInputChange('el_width', width);
+  let node = elem.nodeName;
+  let nodeID = elem.id;
+  let h = '90vh';
+  Shiny.onInputChange('dim', {id, width, height, node, nodeID, h});
+}
 
-  dashboardHeader( 
-    title = tagList(
-      span(class = "logo-lg", 
-           HTML("<b style='color:#FFF;background:#000;border-radius:20px;'>
-                &nbsp;R&nbsp;</b>FALLOW Model")),
-      img(src = "rfallow_icon.svg", style = "width: 20px")
-  )),
+shinyjs.setMin = function(id){
+  let h = 'height';
+  Shiny.setInputValue(h.concat(id), '400px');
+}
+
+shinyjs.setMax = function(id){
+   let h = 'height';
+   Shiny.setInputValue(h.concat(id), '90vh');
+}
   
-  dashboardSidebar(minified = TRUE, 
+"
+
+ui <- dashboardPage(
+  freshTheme = theme,
+  help = NULL,
+  fullscreen = TRUE,
+  scrollToTop = TRUE,
+  header = dashboardHeader(
+    title = dashboardBrand(
+      title = tags$b("R-Fallow"),
+      image = "images/rfallow_logo.png"
+    )
+  ),
+  
+  sidebar = dashboardSidebar(
+    skin = "light",
     sidebarMenu(
       id = "sidemenu",
       menuItem("Home", tabName = "home", icon = icon("home")),
       menuItem("Input Parameters", tabName = "parameters", icon = icon("sliders"), 
+               startExpanded = TRUE,
          menuSubItem("Initial Input", tabName = "general", icon = icon("wrench")),
          menuSubItem("Land Cover", tabName = "inp_landcover", icon = icon("layer-group")),
          menuSubItem("Spatial Data", tabName = "inp_spatial", icon = icon("earth-asia")),
@@ -104,13 +158,17 @@ ui <- dashboardPage(title = "R-Fallow",
          menuSubItem("Checklist Summary", tabName = "inp_summary", icon = icon("check-to-slot"))),
       menuItem("Run Simulation", tabName = "run_tab", icon = icon("play")),
       menuItem("User Manual", tabName = "manual_tab", icon = icon("book")),
-      menuItem("About", tabName = "about_tab", icon = icon("circle-info"))),
-    fixedPanel(bottom = 0, left = 0, width = "200px", 
-               div(HTML("&copy; World Agroforestry (ICRAF)"), 
-                   style = "text-align:center; color:#5A6E2E"))
+      menuItem("About", tabName = "about_tab", icon = icon("circle-info")))
+    # fixedPanel(bottom = 0, left = 0, width = "200px", 
+    #            div(HTML("&copy; World Agroforestry (ICRAF)"), 
+    #                style = "text-align:center; color:#5A6E2E"))
   ),
   
-  dashboardBody(
+  body = dashboardBody(
+    useShinyjs(),
+    # extendShinyjs(text = jsCode, functions = c("setMax", "setMin")),#, "setMin"
+    # extendShinyjs(text = jsCode, functions = c("getDim", "setMin", "setMax")),#, "setMin"
+    
     tags$head(tags$style(HTML("
       .drop_box {
         border-radius: 4px;
@@ -123,31 +181,41 @@ ui <- dashboardPage(title = "R-Fallow",
         border: 2px dashed red;
         margin: 30px 5px 5px;
         padding: 5px;
-        background-color: #FEF2F1; 
+        background-color: #FEF2F140; 
         display: inline-block;
       }
       
-      .circle {
-        font-size: 90px;
-        text-align: center;
-        font-weight: bold;
-        line-height: 100px;
-        color:#FFF;
-        background:#C6E0B3;
-        border-radius:50px;
-        width:100px;
-      }
+
       
       hr.green {
-        border-top: 3px solid #C6E0B3;
+        border-top: 3px solid #C6E0B350;
       }
       
       .greenbox {
-        background:#C6E0B3; 
-        margin:20px 0px; 
+        background:#72A12130; 
+        margin:10px 0px; 
         padding:10px;
         border-radius:5px;
       }
+      
+      .dark-mode .content-wrapper {
+          background-color: #121C0C;
+          color: #61953E; 
+      }
+      
+      .navbar-light {
+          background-color: #E1EFD8 !important;
+      }
+      
+      .navbar-dark {
+          background-color: #18250F !important;
+      }
+      
+      .bg-dark {
+          background-color: #121C0C !important;
+      }
+
+        
     "))),
 
     tags$script(
@@ -156,10 +224,8 @@ ui <- dashboardPage(title = "R-Fallow",
       }"
     ),
     
-    useShinyjs(),
-    use_theme(mytheme),
-    # setShadow(class = "box"),
-    
+
+        
     tags$script(src="jexcel.js"),
     tags$link(rel="stylesheet", href="jexcel.css", type="text/css"),
     tags$script(src="jsuites.js"),
@@ -168,7 +234,7 @@ ui <- dashboardPage(title = "R-Fallow",
 
     tabItems(
       tabItem(tabName = "home",
-              h3(HTML("<b class='h1' >F</b>orest, <b class='h1'>A</b>groforest, 
+              h3(img(src = "images/rfallow_logo.png", width = "50px"), HTML("<b class='h1' >F</b>orest, <b class='h1'>A</b>groforest, 
                       <b class='h1' >L</b>ow-value <b class='h1'>L</b>and
                       <b class='h1'>O</b>r <b class='h1' >W</b>asteland?")),
               hr(class = "green"),
@@ -177,31 +243,40 @@ ui <- dashboardPage(title = "R-Fallow",
       ),
       tabItem(tabName = "general", h2("Parameter Input Options"),
               hr(class = "green"),
-        fluidRow(      
-          column(2, div("1", class = "circle")),      
-          column(10,  h3(icon("file", style = "margin: 10px;"), "New Parameter"),
-            HTML("<p>The parameterization should be started by the initialization of
-                 <b>Land Cover</b> map and definition</p>"),
+        fluidRow(     
+          column(2, icon("file"), style = "margin: auto;font-size: 40px; text-align: center;"),      
+          column(7,  h4("New parameter"),
+            HTML("The parameterization should be started by the initialization of
+                 <b>Land Cover</b> map and class definition")),
+          column(3, style = "margin: auto;",
             actionButton("start_button", "Go to Land Cover initialization...")) 
         ),
 
         hr(class = "green"),
         fluidRow(      
-          column(2, div("2", class = "circle")),
-          column(10, h3(icon("folder-open", style = "margin: 10px;"), "Load parameter"),
-                 HTML("Upload the <b>saved parameters</b> files (.zip)"),
-            fileInput("upload_parameter", NULL, accept = ".zip")),
+          column(2, icon("folder-open"), style = "margin: auto; font-size: 40px; text-align: center;"),
+          column(5, h4("Load parameter"), 
+                 HTML("Upload the <b>saved parameters</b> files (.zip)")),
+          column(5, fileInput("upload_parameter", NULL, accept = ".zip")),
         ),
         hr(class = "green"),
         fluidRow(      
-          column(2, div("3", class = "circle")),
-          column(10, h3(icon("file-import", style = "margin: 10px;"), "Import parameter"),
-                 HTML("Import paramaters from the <b>FALLOW-PCRaster</b> version (.zip)"),
-            fileInput("import_parameter", NULL, accept = ".zip"),
+          column(2, icon("file-import"), style = "margin: auto; font-size: 40px; text-align: center;"),
+          column(5, h4("Import parameter"),
+                 HTML("Import paramaters from the <b>FALLOW-PCRaster</b> version (.zip)")),
+          column(5, fileInput("import_parameter", NULL, accept = ".zip"),
             uiOutput("loadedParams"))
         ),
         hr(class = "green"),
-        progressBar(id = "progress_input", value = 0, status = "warning", title = "")
+        fluidRow(      
+          column(2, icon("earth-asia"), style = "margin: auto; font-size: 40px; text-align: center;"),
+          column(10, h4("Example parameters"),
+                 uiOutput("example_parameters"))
+        ),
+        hr(class = "green"),
+        shinyWidgets::progressBar(id = "progress_input", value = 0, status = "warning", title = "")
+        
+        
       ),
       
       ################################################################
@@ -215,17 +290,24 @@ ui <- dashboardPage(title = "R-Fallow",
             HTML("<h4>Upload the initial '<b>Land Cover</b>' map</h4>"),
             fileInput("upload_initlc", NULL, accept = ".tif")),
         fluidRow(
-          box(id = "box_map_display", title = "Map display", collapsible = TRUE, width = 12, collapsed = F, 
+          box(id = "box_map_display", title = "Land cover map", collapsible = TRUE, height = "400px",
+              width = 6, collapsed = F, maximizable = T, 
               dropdownMenu = boxDropdown(icon = icon("ellipsis-vertical"),
                 boxDropdownItem(id = "refresh_lcmap", "Refresh map", icon = icon("arrows-rotate"))),
-              sidebar = boxSidebar(
-                id = "inp_initlc_sidebar",
-                icon = icon("chart-simple"),
-                background = COLOR_DARK,
-                uiOutput("out_tot_area"),
-                plotOutput("plot_lc_area", height = "300px")
-              ),
+              # sidebar = boxSidebar(
+              #   id = "inp_initlc_sidebar",
+              #   icon = icon("chart-simple"),
+              #   background = COLOR_DARK,
+              #   uiOutput("out_tot_area"),
+              #   plotOutput("plot_lc_area", height = "300px")
+              # ),
               uiOutput("inp_initlc_display")
+          ),
+          box(id = "box_lc_chart", title = "Total area", collapsible = TRUE, height = "400px",
+              width = 6, collapsed = F, 
+              uiOutput("out_tot_area"),
+              plotOutput("plot_lc_area")
+
           ),
           box(id = "box_lc_table",title = "Land Cover", collapsible = TRUE, width = 12, collapsed = F,
               dropdownMenu = boxDropdown(icon = icon("ellipsis-vertical"),
@@ -284,7 +366,7 @@ ui <- dashboardPage(title = "R-Fallow",
              )
            })
         ),
-        fixedPanel(top = 310, right = 0, width = "27%", draggable = T,
+        fixedPanel(top = 290, right = 15, width = "25%", draggable = T,
                    box(title = "Uploaded maps", width = 12, uiOutput("map_upload_box"))),
         fixedPanel(bottom = 0, width = "600px", uiOutput("map_display"))
       ),
@@ -345,12 +427,17 @@ ui <- dashboardPage(title = "R-Fallow",
                          style="unite", color = "danger")),
               style="margin-top: 10px;")
           ),
-          progressBar(id = "progress_iteration", value = 0, status = "warning",
+          shinyWidgets::progressBar(id = "progress_iteration", value = 0, status = "warning",
                       title = "Iteration (year)", total = 30),
-          progressBar(id = "progress_detail", value = 0, status = "danger",
+          shinyWidgets::progressBar(id = "progress_detail", value = 0, status = "danger",
                       title = "Progress detail"),
+
           uiOutput("output_selector"), 
-          fluidRow(id ="add_output")
+          # boxLayout(
+          #   type = "deck", sortable(div(id ="add_output")))
+          fluidRow(id ="add_output"
+            # sortable(div(id ="add_output"), width = 6)
+          )
       ),
       
       tabItem(tabName = "manual_tab", h2("User Manual"), hr(class = "green"),
