@@ -7,7 +7,7 @@ permalink: pretty
 collections:
   pages:
     output: true
-    permalink: /:path/
+    permalink: /docs
 
 # Title
 name: DCgov Guides Template
