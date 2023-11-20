@@ -12,3 +12,5 @@ navigation:
 - text: Introduction
   internal: true
   url: ./
+
+brand_color: "#DA253B"
