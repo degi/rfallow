@@ -32,7 +32,7 @@ logoalt: R-Fallow
 navigation:
 - text: Introduction
   internal: true
-  url: /rfallow/manual.md
+  url: /docs/manual.md
 - text: Add a new page
   internal: true
   #url: add-a-new-page
