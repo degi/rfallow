@@ -1,4 +1,4 @@
-title: Your awesome title
+title: R-Fallow
 email: your-email@domain.com
 description: > # this means to ignore newlines until "baseurl:"
   Write an awesome description for your new site here. You can edit this
@@ -7,3 +7,4 @@ description: > # this means to ignore newlines until "baseurl:"
 
 baseurl: "rfallow" # the subpath of your site, e.g. /blog
 exclude: ["README.md"]
+theme: minima
