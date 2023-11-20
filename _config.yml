@@ -3,5 +3,5 @@ email: your-email@domain.com
 baseurl: "/rfallow/docs" # the subpath of your site, e.g. /blog
 github_username: degi
 theme: minima
-exclude: ["README.md"]
+#exclude: ["README.md"]
 
