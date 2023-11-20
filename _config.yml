@@ -1,5 +1,8 @@
 name: R-Fallow
 theme: minima
+docs:
+  - docs/manual.md
+  - about.md
 collections:
   tutorials:
     order:
