@@ -4,10 +4,10 @@ markdown: kramdown
 highlighter: rouge
 permalink: pretty
 
-collections:
-  pages:
-    output: true
-    permalink: /docs
+#collections:
+#  pages:
+#    output: true
+#    permalink: /docs
 
 # Title
 name: DCgov Guides Template
