@@ -7,3 +7,8 @@ exclude: ["RFallow_manual"]
 
 logourl: /www/images/rfallow_logo.png
 logoalt: R-Fallow
+
+navigation:
+- text: Introduction
+  internal: true
+  url: ./
