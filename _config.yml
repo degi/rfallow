@@ -3,7 +3,7 @@ title: User Manual
 permalink: /docs
 baseurl: /rfallow # the subpath of your site, e.g. /blog
 theme: minima
-exclude: ["RFallow_manual.md"]
+exclude: ["RFallow_manual"]
 
 logourl: /www/images/rfallow_logo.png
 logoalt: R-Fallow
