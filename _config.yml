@@ -1,5 +1,5 @@
 title: User Manual
 email: your-email@domain.com
-baseurl: "/rfallow" # the subpath of your site, e.g. /blog
+#baseurl: "/rfallow" # the subpath of your site, e.g. /blog
 exclude: ["README.md"]
 theme: minima
