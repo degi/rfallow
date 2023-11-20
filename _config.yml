@@ -1,8 +1,6 @@
 layout: page
 title: User Manual
 permalink: /docs
-email: your-email@domain.com
-baseurl: "/rfallow" # the subpath of your site, e.g. /blog
-github_username: degi
+baseurl: /rfallow # the subpath of your site, e.g. /blog
 theme: minima
 #exclude: ["README.md"]
