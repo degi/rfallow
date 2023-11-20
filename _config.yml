@@ -1,5 +1,7 @@
 title: User Manual
 email: your-email@domain.com
 #baseurl: "/rfallow" # the subpath of your site, e.g. /blog
-exclude: ["README.md"]
+github_username:  degi
 theme: minima
+exclude: ["README.md"]
+
