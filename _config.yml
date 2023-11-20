@@ -3,4 +3,4 @@ title: User Manual
 permalink: /docs
 baseurl: /rfallow # the subpath of your site, e.g. /blog
 theme: minima
-#exclude: ["README.md"]
+exclude: ["RFallow_manual.md"]
