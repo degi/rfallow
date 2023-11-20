@@ -32,16 +32,16 @@ logoalt: R-Fallow
 navigation:
 - text: Introduction
   internal: true
-  url: ./
+  url: /rfallow/manual.md
 - text: Add a new page
   internal: true
-  url: add-a-new-page
+  #url: add-a-new-page
 - text: Configure the Guide
   internal: true
-  url: configure-the-guide
+  #url: configure-the-guide
 - text: GitHub Setup
   internal: true
-  url: github
+  #url: github
 - text: Create a Glossary
   glossary: true
 #- text: Edit this Repo
