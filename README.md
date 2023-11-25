@@ -33,6 +33,6 @@ This Shiny app requires R software with a minimum version of 4.3.0. The required
 
 ## Online demo
 
-Online demo can be found on free server here: https://degi.shinyapps.io/rfallow/. Somehow, this server has a limitation of memory, thus running the simulation with big map input is impossible. Running the app from the source code (above) is recommended.
+The online demo can be found here: https://degi.shinyapps.io/rfallow/. Since this was hosted on a free server with a limitation of memory, running the simulation with big spatial data input will eventually make it crash. So, it is recommended to run the app from the source code.
 
-We were planning to get a proper server to host the app. Soon we get a better server, the app address will be shown here. 
+We were planning to get a proper server to host the app. Soon we get a host server, the app address will be shown here. 
