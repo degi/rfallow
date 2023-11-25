@@ -2,7 +2,7 @@
 
 ## How to run
 
-Run the program from this source code by executing this script in R or RStudio:
+Run the program from this GitHub source code using **R** or **RStudio** by executing the script below:
 
     library(shiny)
     runGitHub("rfallow", "degi")
