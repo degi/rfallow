@@ -1,4 +1,4 @@
-**R-Fallow** is the R/Shiny implementation of original FALLOW model developed by ICRAF
+**R-Fallow** is the R/Shiny implementation of the original FALLOW model developed by ICRAF
 
 ## How to run
 
