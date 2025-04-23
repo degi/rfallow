@@ -7,38 +7,47 @@ source("RFallow_main.R")
 
 
 server <- function(input, output, session) {
-  options(shiny.maxRequestSize=300*1024^2)
+  options(shiny.maxRequestSize = 300 * 1024^2)
   useAutoColor()
   
   
   
   data_dir = paste0(tempdir(), "/data_temp")
-  v_inp <- reactiveValues(def_file = NULL, def_df = NULL, params_path = NULL,
-                          fallow_params = NULL, initlc_file = NULL, 
-                          lc_area_df = NULL)
+  v_inp <- reactiveValues(
+    def_file = NULL,
+    def_df = NULL,
+    params_path = NULL,
+    fallow_params = NULL,
+    initlc_file = NULL,
+    lc_area_df = NULL
+  )
   
   v_out <- reactiveValues(fallow_output = NULL, table_outputs = NULL)
   
-  params <- reactiveValues(initlc_map = NULL,
-                           map_data_df = NULL,
-                           map_list = NULL,
-                           landcover_df = NULL, 
-                           landuse_df = NULL,
-                           livelihood_df = NULL,
-                           bio_lc_df = NULL,
-                           bio_ll_df = NULL,
-                           eco_lc_df = NULL,
-                           eco_ll_df = NULL,
-                           soc_ll_df = NULL,
-                           demographics_df = demographics_df,
-                           agentprop_df = agentprop_df,
-                           disaster_df = disaster_df,
-                           converter_df = converter_df)
+  params <- reactiveValues(
+    initlc_map = NULL,
+    map_data_df = NULL,
+    map_list = NULL,
+    landcover_df = NULL,
+    landuse_df = NULL,
+    livelihood_df = NULL,
+    bio_lc_df = NULL,
+    bio_ll_df = NULL,
+    eco_lc_df = NULL,
+    eco_ll_df = NULL,
+    soc_ll_df = NULL,
+    demographics_df = demographics_df,
+    agentprop_df = agentprop_df,
+    disaster_df = disaster_df,
+    converter_df = converter_df
+  )
   
   pheight <- reactiveValues()
-
-  color_list <- c(brewer.pal(9, "Set1"), brewer.pal(8, "Set2"), brewer.pal(12, "Set3"))
-  pallete_def <- list()  
+  
+  color_list <- c(brewer.pal(9, "Set1"),
+                  brewer.pal(8, "Set2"),
+                  brewer.pal(12, "Set3"))
+  pallete_def <- list()
   pallete_map <- list()
   
   ##################################################
@@ -50,20 +59,21 @@ server <- function(input, output, session) {
       session = session,
       title = "File error!",
       text =  tags$span("Or it was not a", tags$b(file_error), "file!"),
-      type = "error", html = TRUE
+      type = "error",
+      html = TRUE
     )
   }
   
   checkLoadedTable <- function(df, colTypes, ftype) {
-    if(is.null(df) | ncol(df) != length(colTypes)) {
+    if (is.null(df) | ncol(df) < length(colTypes)) {
       show_alert_file_error(ftype)
       return(F)
     }
     for (i in 1:length(colTypes)) {
-      if(colTypes[i] == "c" & !is.character(df[[i]])) {
+      if (colTypes[i] == "c" & !is.character(df[[i]])) {
         show_alert_file_error(ftype)
         return(F)
-      } else if(colTypes[i] == "n" & !is.numeric(df[[i]])) {
+      } else if (colTypes[i] == "n" & !is.numeric(df[[i]])) {
         show_alert_file_error(ftype)
         return(F)
       }
@@ -72,16 +82,22 @@ server <- function(input, output, session) {
   }
   
   show_notif_palette <- function() {
-    showNotification("Click 'Refresh map' on Map Display to view the effect of palette color changes", type = "warning")
+    showNotification("Click 'Refresh map' on Map Display to view the effect of palette color changes",
+                     type = "warning")
   }
   
   show_alert_nrow_error <- function(nreq, nload) {
     sendSweetAlert(
       session = session,
       title = "Invalid number of rows!",
-      text =  tags$span("The required number of rows is ", tags$b(nreq), 
-                        ", and the loaded number of rows is ", tags$b(nload)),
-      type = "error", html = TRUE
+      text =  tags$span(
+        "The required number of rows is ",
+        tags$b(nreq),
+        ", and the loaded number of rows is ",
+        tags$b(nload)
+      ),
+      type = "error",
+      html = TRUE
     )
   }
   
@@ -89,9 +105,9 @@ server <- function(input, output, session) {
   
   # open tab menu
   observeEvent(input$start_button, {
-    updateTabItems(session, inputId ="sidemenu", selected = "inp_landcover")
+    updateTabItems(session, inputId = "sidemenu", selected = "inp_landcover")
   })
-
+  
   
   ##################################################
   ## INPUT PARAMETRS  ##############################
@@ -106,31 +122,74 @@ server <- function(input, output, session) {
     upload_parameter(dpath)
   })
   
-  upload_parameter <- function(dpath) {  
+  
+  
+  upload_parameter <- function(dpath) {
     file_list <- NULL
-    try(file_list <- unzip(dpath, list = TRUE), silent = T)
-    if(is.null(file_list)) {
+    try(file_list <- utils::unzip(dpath, list = TRUE), silent = T)
+    if (is.null(file_list)) {
       show_alert_file_error("compressed (zip)")
       return()
     }
-    unzip(dpath, exdir = data_dir)
+    # print(file_list)
+    utils::unzip(dpath, exdir = data_dir, junkpaths = T)
+    # print(list.files(path = data_dir))
+    
     update_progress_input(20, "Uploading scalar parameters")
-    p <- lapply(params_file_df$file, function(f){
-      fpath <- paste0(data_dir, "/", f)
-      if(!file.exists(fpath)) {
-        print(paste("File missing:", f))
+    
+    # p <- lapply(params_file_df$file, function(f) {
+    #   fpath <- paste0(data_dir, "/", f)
+    #   if (!file.exists(fpath)) {
+    #     print(paste("File missing:", f))
+    #     return()
+    #   }
+    #   df <- read.csv(fpath)
+    #   if (is.null(df))
+    #     return()
+    #   df[df == ""] <- NA
+    #   df
+    # })
+    
+    p <- apply(params_file_df, 1, function(f, par) {
+      fpath <- paste0(data_dir, "/", f["file"])
+      if (!file.exists(fpath)) {
+        print(paste("File missing:", f["file"]))
         return()
       }
       df <- read.csv(fpath)
-      if(is.null(df)) return()
+      if (is.null(df))
+        return()
       df[df == ""] <- NA
+      # df <- trimws(df)
+      df <- data.frame(lapply(df, function(x) if(class(x)=="character") trimws(x) else(x)), stringsAsFactors=F)
+      
+      v <- f["var"]
+      if (v %in% tab_scalar_df$table) {
+        id_df <- par_scalar_title_df[par_scalar_title_df$table == v, ]
+        def_field <- c(id_df$table_id[1],
+                       id_df$table_id_str[1],
+                       par_scalar_field_df[par_scalar_field_df$id %in% id_df$id, "field"])
+        field <- intersect(def_field, names(df))
+        if (length(field) == 0)
+          return()
+        
+        dif <- setdiff(def_field, field)
+        if (length(dif) > 0)
+          df[dif] <- 0
+        df <- df[def_field]
+      }
+      
       df
-    })
+    }, params)
+    
+    names(p) <- params_file_df$var
+    
     #TODO: this could be error
     update_progress_input(40, "Uploading land cover initials")
-    names(p) <- params_file_df$var
+    
+    
     lcf <- paste0(data_dir, "/", INITLC_FILE)
-    if(file.exists(lcf)) {
+    if (file.exists(lcf)) {
       p[[INITLC_MAP_VAR]] <- read_stars(lcf)
     } else {
       print(paste("File missing:", INITLC_FILE))
@@ -138,12 +197,12 @@ server <- function(input, output, session) {
     }
     
     update_progress_input(50, "Uploading maps")
-    if(!is.null(p$map_data_df)) {
+    if (!is.null(p$map_data_df)) {
       mf <- p$map_data_df$file
       mf <- mf[!is.na(mf) & mf != ""]
-      m <- lapply(mf, function(f){
+      m <- lapply(mf, function(f) {
         fpath <- paste0(data_dir, "/", f)
-        if(!file.exists(fpath)) {
+        if (!file.exists(fpath)) {
           print(paste("File missing:", f))
           return()
         }
@@ -152,11 +211,12 @@ server <- function(input, output, session) {
       names(m) <- mf
       p$map_list <- m
     }
+    # print(p)
     apply_parameter(p)
     enable("run_button")
     # unlink(data_dir, recursive = TRUE)
     update_progress_input(100, "Parameters upload completed")
-    updateTabItems(session, inputId ="sidemenu", selected = "inp_landcover")
+    updateTabItems(session, inputId = "sidemenu", selected = "inp_landcover")
   }
   
   observeEvent(input$import_parameter, {
@@ -165,26 +225,32 @@ server <- function(input, output, session) {
     dpath <- input$import_parameter$datapath
     file_list <- NULL
     try(file_list <- unzip(dpath, list = TRUE), silent = T)
-    if(is.null(file_list)) {
+    if (is.null(file_list)) {
       show_alert_file_error("compressed (zip)")
       return()
     }
     v_inp$params_path <- paste0(data_dir, "/", file_list$Name)
     unzip(dpath, exdir = data_dir)
-    pcraster_files <- grep(pattern = "\\.mod$", x = v_inp$params_path, ignore.case = T, value = T)
+    pcraster_files <- grep(
+      pattern = "\\.mod$",
+      x = v_inp$params_path,
+      ignore.case = T,
+      value = T
+    )
     print(pcraster_files)
     flength <- length(pcraster_files)
-    if(flength == 1) {
+    if (flength == 1) {
       v_inp$def_file <- pcraster_files[1]
       import_parameter(v_inp$def_file, v_inp$params_path)
-    } else if(flength > 1) {
+    } else if (flength > 1) {
       showModal(modalDialog(
         title = "Multiple files found",
-        radioButtons("def_input_option", "Please select the main PCRaster model file:", 
-                     choices = pcraster_files),
-        footer = tagList(
-          actionButton("def_input_select", "OK")
-        )
+        radioButtons(
+          "def_input_option",
+          "Please select the main PCRaster model file:",
+          choices = pcraster_files
+        ),
+        footer = tagList(actionButton("def_input_select", "OK"))
       ))
     } else {
       sendSweetAlert(
@@ -195,7 +261,7 @@ server <- function(input, output, session) {
       )
     }
   })
-
+  
   observeEvent(input$def_input_select, {
     v_inp$def_file <- input$def_input_option
     import_parameter(v_inp$def_file, v_inp$params_path)
@@ -208,20 +274,24 @@ server <- function(input, output, session) {
     updateProgressBar(session, "progress_input", value, title = desc)
   }
   
-  import_parameter <- function(pfile, ppath) {    
+  import_parameter <- function(pfile, ppath) {
     def_df <- loadPCRasterFallowParamDef(pfile)
     update_progress_input(5, "Loading the parameters")
     print("Loading the parameters")
     fallow_params <- loadFallowParams(def_df, ppath, update_progress_input)
     apply_parameter(fallow_params)
     #pallete color definiton
-    pal_files <- grep(pattern = "\\.pal$", x = ppath, ignore.case = T, value = T)
-    lapply(pal_files, function(x){
-      suppressWarnings(pallete_def[[basename(x)]] <<- rgb(read.table(x)/255))
+    pal_files <- grep(
+      pattern = "\\.pal$",
+      x = ppath,
+      ignore.case = T,
+      value = T
+    )
+    lapply(pal_files, function(x) {
+      suppressWarnings(pallete_def[[basename(x)]] <<- rgb(read.table(x) / 255))
     })
-    if(!is.null(pallete_def[["lc.pal"]])) {
-      pal_df <- data.frame(lc_id = c(0:(length(pallete_def[["lc.pal"]])-1)), 
-                           color = pallete_def[["lc.pal"]])
+    if (!is.null(pallete_def[["lc.pal"]])) {
+      pal_df <- data.frame(lc_id = c(0:(length(pallete_def[["lc.pal"]]) - 1)), color = pallete_def[["lc.pal"]])
       pallete_map[["initlc_map"]] <<- pal_df
       pallete_map[["lcmap"]] <<- pal_df
     }
@@ -229,12 +299,12 @@ server <- function(input, output, session) {
     enable("run_button")
     print("run enable")
     # unlink(data_dir, recursive = TRUE)
-    updateTabItems(session, inputId ="sidemenu", selected = "inp_landcover")
+    updateTabItems(session, inputId = "sidemenu", selected = "inp_landcover")
   }
   
   apply_parameter <- function(p) {
     #TODO: BUGS -> map table was not updated if the parameters reloaded
-    for(n in names(p)) {
+    for (n in names(p)) {
       params[[n]] <- p[[n]]
     }
     map_data_df <<- params$map_data_df
@@ -243,12 +313,13 @@ server <- function(input, output, session) {
     updateMapListBox()
     view_initlc_map()
   }
-
+  
   output$loadedParams <- renderUI({
-    if(is.null(v_inp$def_file)) return()
-    tagList(
-      HTML(paste("PCRaster file:<b>", basename(v_inp$def_file), "</b>")),
-    )
+    if (is.null(v_inp$def_file))
+      return()
+    tagList(HTML(paste(
+      "PCRaster file:<b>", basename(v_inp$def_file), "</b>"
+    )), )
   })
   
   library(utils)
@@ -256,44 +327,47 @@ server <- function(input, output, session) {
   ###### EXAMPLE PARAMETERS #########################
   
   output$example_parameters <- renderUI({
-
-    tagList(
-      lapply(ex_pars, function(x) {
-        imgfile <- paste0("images/",x$file, '.png')
-        plotfile <- paste0("www/", imgfile)
-        if(!file.exists(plotfile)) {
-          zfile <- paste0("examples/", x$file)
-          unzip(zfile, files="initlc.tif")
-          m <- read_stars("initlc.tif")
-          # pal <- get_map_color(m)
-          par(bg=NA)
-          png(plotfile, width = 300, height = 300)
-          plot(m, key.pos = NULL, main = NULL)#, col = pal, breaks = "equal")
-          dev.off()
-        }
-        userPost(
-          collapsed = T,
-          image = imgfile,
-           author = x$label,
-           description = x$desc,
-          div(style = "float: right;", 
+    tagList(lapply(ex_pars, function(x) {
+      imgfile <- paste0("images/", x$file, '.png')
+      plotfile <- paste0("www/", imgfile)
+      if (!file.exists(plotfile)) {
+        zfile <- paste0("examples/", x$file)
+        unzip(zfile, files = "initlc.tif")
+        m <- read_stars("initlc.tif")
+        # pal <- get_map_color(m)
+        par(bg = NA)
+        png(plotfile, width = 300, height = 300)
+        plot(m, key.pos = NULL, main = NULL)#, col = pal, breaks = "equal")
+        dev.off()
+      }
+      userPost(
+        collapsed = T,
+        image = imgfile,
+        author = x$label,
+        description = x$desc,
+        div(
+          style = "float: right;",
           
-          tags$img(height = 100, width = 100, src = imgfile, 
-                   style = "margin: 10px;"), tags$br(),
-                   # border-radius:5px; border:10px solid #FFF;box-shadow: 3px 3px 8px 3px #00000050;"),
-          actionButton(paste0("ex_", x$file), "Load parameter")
+          tags$img(
+            height = 100,
+            width = 100,
+            src = imgfile,
+            style = "margin: 10px;"
           ),
-          div(tags$b("Link:"), tags$a(x$link, href = x$link)),
-          div(tags$b("Reference:"), x$ref),
-          div(tags$b("DOI:"), tags$a(x$DOI, href = x$DOI))
-          
-        )
-
-      })
-    )
+          tags$br(),
+          # border-radius:5px; border:10px solid #FFF;box-shadow: 3px 3px 8px 3px #00000050;"),
+          actionButton(paste0("ex_", x$file), "Load parameter")
+        ),
+        div(tags$b("Link:"), tags$a(x$link, href = x$link)),
+        div(tags$b("Reference:"), x$ref),
+        div(tags$b("DOI:"), tags$a(x$DOI, href = x$DOI))
+        
+      )
+      
+    }))
   })
   
-  lapply(ex_pars, function(x){
+  lapply(ex_pars, function(x) {
     observeEvent(input[[paste0("ex_", x$file)]], {
       upload_parameter(paste0("examples/", x$file))
     })
@@ -303,8 +377,8 @@ server <- function(input, output, session) {
   ############################################################
   ### IMPORT FALLOW PARAMS ###################################
   ############################################################
-
-  import_fallow_params <- function(){
+  
+  import_fallow_params <- function() {
     isolate(p <- v_inp$fallow_params)
     
     #Land cover
@@ -313,7 +387,7 @@ server <- function(input, output, session) {
     names(lc_df) <- c("landcover", "lc_id")
     df <- import_old_lc_par(lc_df)
     params$landcover_df <- generate_LU_IDS(df[lc_field])
-    if(!is.null(pallete_map[["initlc_map"]]))
+    if (!is.null(pallete_map[["initlc_map"]]))
       import_pallete_lc(pallete_map[["initlc_map"]])
     view_initlc_map()
     
@@ -321,19 +395,19 @@ server <- function(input, output, session) {
     pfile_df <- p$pcraster_params
     mlist <- list()
     
-    lapply(general_map_old_ids, function(x){
+    lapply(general_map_old_ids, function(x) {
       f <- pfile_df[pfile_df$parameter == x, "value"]
       m_id <- paste0(x, "_map")
       mlist[[f]] <<- p[[m_id]]
       map_data_df[map_data_df$id == m_id, "file"] <<- f
     })
-    apply(suit_map_df, 1, function(x){
+    apply(suit_map_df, 1, function(x) {
       f <- pfile_df[pfile_df$parameter == x["old_id"], "value"]
       m_id <- x["id"]
       mlist[[f]] <<- p$suitability_maps[[m_id]]
       map_data_df[map_data_df$id == x["new_id"], "file"] <<- f
     })
-    apply(dist_map_df, 1, function(x){
+    apply(dist_map_df, 1, function(x) {
       f <- pfile_df[pfile_df$parameter == x["fid"], "value"]
       m_id <- x["map_type"]
       mlist[[f]] <<- p$map_data_a[[m_id]]
@@ -349,55 +423,61 @@ server <- function(input, output, session) {
     names(pb1)[names(pb1) == "lcid"] <- "lc_id"
     pb1 <- merge(pb1, lc_df[c("lc_id", "lc_short")], by = "lc_id")
     params$bio_lc_df <- pb1
-
+    
     ll_df <- params$livelihood_df
     pb2 <- p$parbio2_df
     pb2$ll_id <- pb2$livelihoodid + 1
     pb2[c("livelihoodid", "livelihoodtype")] <- NULL
     pb2 <- merge(pb2, ll_df[c("ll_id", "ll_short")], by = "ll_id")
     params$bio_ll_df <- pb2
-
+    
     pe1 <- p$pareco1_df
     pe1$ll_id <- pe1$livelihoodid + 1
     pe1[c("livelihoodid", "livelihoodtype")] <- NULL
     pe1 <- merge(pe1, ll_df[c("ll_id", "ll_short")], by = "ll_id")
     params$eco_ll_df <- pe1
-
-    nlc <- p$nonlaborcoststat_df[p$nonlaborcoststat_df$mean > 0,]
+    
+    nlc <- p$nonlaborcoststat_df[p$nonlaborcoststat_df$mean > 0, ]
     nlc <- nlc[c("lcid", "mean", "cv")]
     names(nlc) <- c("lc_id", "nonlaborcost.mean", "nonlaborcost.cv")
     lc_df_id <- lc_df[c("lc_id", "lc_short")]
     pe2 <- merge(lc_df_id, nlc, by = "lc_id", all.x = T)
-    ys <- p$yieldstat_df[p$yieldstat_df$mean > 0,]
+    ys <- p$yieldstat_df[p$yieldstat_df$mean > 0, ]
     ys <- ys[c("lcid", "mean", "cv")]
     names(ys) <- c("lc_id", "yield.mean", "yield.cv")
     pe2 <- merge(pe2, ys, by = "lc_id", all.x = T)
     pe2[is.na(pe2)] <- 0
     params$eco_lc_df <- pe2
-
+    
     params$demographics_df$value <- p$demographics_df$value
-    params$agentprop_df$value1 <- as.vector(p$agentprop_df[1,2:5])
-    params$agentprop_df$value2 <- as.vector(p$agentprop_df[2,2:5])
+    params$agentprop_df$value1 <- as.vector(p$agentprop_df[1, 2:5])
+    params$agentprop_df$value2 <- as.vector(p$agentprop_df[2, 2:5])
     params$disaster_df[4, "value"] <- p$disaster_time
-    if(!is.null(p$disastersocialimpact_df)) {
+    if (!is.null(p$disastersocialimpact_df)) {
       params$disaster_df[1:3, "value"] <- disastersocialimpact_df$value
     }
-    if(!is.null(p$unitconverter_df)) {
+    if (!is.null(p$unitconverter_df)) {
       params$converter_df$value <- p$unitconverter_df$value
     }
   }
-
+  
   ###################################
   observeEvent(input$upload_initlc, {
     print("Uploading land cover map file")
     v_inp$initlc_file <- input$upload_initlc$datapath
   })
-
+  
   ###########################################
   create_xltable <- function(df, colset_df) {
-    excelTable(data=df, columns = colset_df,
-               allowDeleteColumn = F, allowRenameColumn = F, columnSorting = T,
-               allowInsertRow = F, allowDeleteRow = F)
+    excelTable(
+      data = df,
+      columns = colset_df,
+      allowDeleteColumn = F,
+      allowRenameColumn = F,
+      columnSorting = T,
+      allowInsertRow = F,
+      allowDeleteRow = F
+    )
   }
   
   
@@ -407,27 +487,28 @@ server <- function(input, output, session) {
   
   ##  INPUT Initial land cover map ###########
   observe({
-    if(is.null(v_inp$initlc_file)) return()
+    if (is.null(v_inp$initlc_file))
+      return()
     m <- NULL
     try(m <- read_stars(v_inp$initlc_file))
-    if(is.null(m)) {
+    if (is.null(m)) {
       show_alert_file_error("Map")
       return()
     }
-    if(is(m[[1]], "factor")) {
+    if (is(m[[1]], "factor")) {
       m <- map_factor_to_numeric(m)
     }
     lc_id <- unique(as.vector(m[[1]]))
-    if(length(lc_id) < 200) {
+    if (length(lc_id) < 200) {
       lc_id <- lc_id[!is.na(lc_id)]
       m_df <- data.frame(lc_id)
       isolate(df <- params$landcover_df)
-      if(is.null(df)) {
+      if (is.null(df)) {
         df <- data.frame(matrix(ncol = length(lc_field), nrow = 0))
         names(df) <- lc_field
-      } 
+      }
       df <- merge(df, m_df, by = "lc_id", all = T)
-      if(all(is.na(df$color))) {
+      if (all(is.na(df$color))) {
         df$color <- hcl.colors(nrow(df), 'Spectral')
       }
       params$landcover_df <- df
@@ -442,235 +523,305 @@ server <- function(input, output, session) {
     isolate(df <- params$landcover_df)
     map_color <- NULL
     isolate(m <- params$initlc_map)
-    if(is.null(m)) return()
-    if(!is.null(df)) {
+    if (is.null(m))
+      return()
+    if (!is.null(df)) {
       lc_id <- unique(as.vector(m[[1]]))
-      if(length(lc_id) < 200 & nrow(df) > 0) {
+      if (length(lc_id) < 200 & nrow(df) > 0) {
         lc_id <- lc_id[!is.na(lc_id)]
         m_df <- data.frame(lc_id)
         df <- merge(df, m_df, by = "lc_id", all = T)
-        if(all(is.na(df$color))) {
+        if (all(is.na(df$color))) {
           lu$color <- hcl.colors(nrow(df), 'Spectral')
         } else {
           df$color[is.na(df$color) | df$color == ""] <- "#000000"
         }
         map_color <- df[c("lc_id", "color")]
-        map_color <- map_color[!is.na(map_color$lc_id),]
-        map_color <- map_color[!duplicated(map_color$lc_id),]
+        map_color <- map_color[!is.na(map_color$lc_id), ]
+        map_color <- map_color[!duplicated(map_color$lc_id), ]
       }
     }
     # generate land use map
     m_lu <- NULL
     isolate(lu_df <- params$landuse_df)
-    if(!is.null(lu_df)) {
+    if (!is.null(lu_df)) {
       lclu_df <- df[c("lc_id", "lu_id")]
-      lclu_df <- lclu_df[lclu_df$lc_id != "" & !is.na(lclu_df$lc_id) &
-                         lclu_df$lu_id != "" & !is.na(lclu_df$lu_id),]
+      lclu_df <- lclu_df[lclu_df$lc_id != "" &
+                           !is.na(lclu_df$lc_id) &
+                           lclu_df$lu_id != "" &
+                           !is.na(lclu_df$lu_id), ]
       lclu_df <- unique(lclu_df)
-      if(nrow(lclu_df) > 0 & length(unique(lclu_df$lc_id)) == nrow(lclu_df)) {
+      if (nrow(lclu_df) > 0 &
+          length(unique(lclu_df$lc_id)) == nrow(lclu_df)) {
         m_lu <- reclassify_map(m, lclu_df)
-        lu_df$color[is.na(lu_df$color) | lu_df$color == ""] <- "#000000"
+        lu_df$color[is.na(lu_df$color) |
+                      lu_df$color == ""] <- "#000000"
       }
     }
     output$inp_initlc_display <- renderUI({
       #check Coordinate Reference System (CRS)
-      if(is.na(st_crs(m))) {
+      if (is.na(st_crs(m))) {
         output$mapplot_plain <- renderPlot({
-          if(is.null(map_color)) {
+          if (is.null(map_color)) {
             plot(m, key.pos = NULL, main = NULL)
           } else {
-            plot(m, col = map_color$color, breaks = c(-1, map_color$lc_id),
-                 key.pos = NULL, main = NULL)
+            plot(
+              m,
+              col = map_color$color,
+              breaks = c(-1, map_color$lc_id),
+              key.pos = NULL,
+              main = NULL
+            )
           }
         }) #, height = map_height()
-        plotOutput("mapplot_plain",height = map_height())
+        plotOutput("mapplot_plain", height = map_height())
       } else {
         mv <- NULL
-        if(is.null(map_color)) {
-          suppressMessages(
-            mv <- mapview(m, na.color = "#FFFFFF00", layer.name = "Land cover", legend = F)
-          )
+        if (is.null(map_color)) {
+          suppressMessages(mv <- mapview(
+            m,
+            na.color = "#FFFFFF00",
+            layer.name = "Land cover",
+            legend = F
+          ))
         } else {
           suppressMessages({
-            if(length(map_color$lc_id) == length(unique(map_color$lc_id))) {
-              mv_lc <- mapview(m, na.color = "#FFFFFF00", layer.name = "Land cover", legend = F,
-                          col.regions = map_color$color, at = c(-1, map_color$lc_id))
+            if (length(map_color$lc_id) == length(unique(map_color$lc_id))) {
+              mv_lc <- mapview(
+                m,
+                na.color = "#FFFFFF00",
+                layer.name = "Land cover",
+                legend = F,
+                col.regions = map_color$color,
+                at = c(-1, map_color$lc_id)
+              )
               mv <- mv_lc
             }
-            if(!is.null(m_lu)) {
-              mv_lu <- mapview(m_lu, na.color = "#FFFFFF00", layer.name = "Land use", legend = F,
-                               col.regions = lu_df$color, at = c(-1, lu_df$lu_id))
+            if (!is.null(m_lu)) {
+              mv_lu <- mapview(
+                m_lu,
+                na.color = "#FFFFFF00",
+                layer.name = "Land use",
+                legend = F,
+                col.regions = lu_df$color,
+                at = c(-1, lu_df$lu_id)
+              )
               mv <- mv_lu + mv
             }
           })
         }
-        if(!is.null(mv)) output$mapplot <- renderLeaflet(mv@map)
+        if (!is.null(mv))
+          output$mapplot <- renderLeaflet(mv@map)
         # leafletOutput("mapplot")
-         # div(style = "height: 300px; width: 100%;", # position: relative;",
+        # div(style = "height: 300px; width: 100%;", # position: relative;",
         leafletOutput("mapplot", height = map_height(), width = "100%")
-          # )
+        # )
         
       }
     })
     lc_area_df <- as.data.frame(table(m))
-    names(lc_area_df) <- c("lc_id", "area") 
+    names(lc_area_df) <- c("lc_id", "area")
     v_inp$lc_area_df <- lc_area_df
   }
   
   map_height <- reactiveVal("350px")
   
   observeEvent(input$box_map_display$visible , {
-    if(input$box_map_display$maximized) {
+    if (input$box_map_display$maximized) {
       map_height("90vh")
     } else {
       map_height(350)
     }
     # js$getDim("box_map_display")
   })
-
+  
   observeEvent(input$refresh_lcmap, view_initlc_map())
-
+  
   ## LC area bar plot
   output$plot_lc_area <- renderPlot({
     lc_area_df <- v_inp$lc_area_df
-    if(is.null(lc_area_df)) return()
+    if (is.null(lc_area_df))
+      return()
     lu_df <- params$landuse_df
-    if(is.null(lu_df) ) return()
+    if (is.null(lu_df))
+      return()
     lc_df <- params$landcover_df
-    if(is.null(lc_df)) return()
+    if (is.null(lc_df))
+      return()
     
     lc_df <- merge(lc_df, lc_area_df, by = "lc_id", all.x = T)
     lc_df <- merge(lc_df, lu_df[c("lu_id", "lu_short")], by = "lu_id", all.x = T)
-    lc_df <- lc_df[!is.na(lc_df$area),]
-    lc_df <- lc_df[!is.na(lc_df$lu_short),]
-    if(nrow(lc_df) == 0) return()
+    lc_df <- lc_df[!is.na(lc_df$area), ]
+    lc_df <- lc_df[!is.na(lc_df$lu_short), ]
+    if (nrow(lc_df) == 0)
+      return()
     
-    exc_ids_df <- lc_area_df[!(lc_area_df$lc_id %in% lc_df$lc_id),]
-    sum_ex_f <- format(sum(exc_ids_df$area, na.rm = T), big.mark=",")
+    exc_ids_df <- lc_area_df[!(lc_area_df$lc_id %in% lc_df$lc_id), ]
+    sum_ex_f <- format(sum(exc_ids_df$area, na.rm = T), big.mark = ",")
     ids_ex_f <- paste(exc_ids_df$lc_id, collapse = ', ')
     lg_label <-  c(growth_stage_list, "None")
     lc_df[is.na(lc_df$growth_stage), "growth_stage"] <- ""
     
-    if(nrow(lc_df[lc_df$growth_stage == "",] > 0))
-      lc_df[lc_df$growth_stage == "",]$growth_stage <- "None" 
-    bar_df <- as.data.frame(cast(lc_df, growth_stage~lu_short, sum, value = "area"))
+    if (nrow(lc_df[lc_df$growth_stage == "", ] > 0))
+      lc_df[lc_df$growth_stage == "", ]$growth_stage <- "None"
+    bar_df <- as.data.frame(cast(lc_df, growth_stage ~ lu_short, sum, value = "area"))
     bar_df$growth_stage <- factor(bar_df$growth_stage, levels = lg_label)
-    bar_df <- bar_df[order(bar_df$growth_stage),]
+    bar_df <- bar_df[order(bar_df$growth_stage), ]
     lg_label <- unlist(bar_df$growth_stage)
     bar_df$growth_stage <- NULL
-    if(nrow(bar_df) == 0) return()
+    if (nrow(bar_df) == 0)
+      return()
     coln <- intersect(lu_df$lu_short, colnames(bar_df))
     bar_df <- bar_df[coln]
     sum_sim <- sum(unlist(bar_df), na.rm = T)
-    sum_f <- format(sum_sim, big.mark=",")
-    output$out_tot_area <- renderUI(tagList(
-      tags$b(paste("Total simulated area:", sum_f, "ha")),
-      div(paste("Excluded area:", sum_ex_f, "ha")),
-      div(paste("Excluded ids:", ids_ex_f))
-    ))
+    sum_f <- format(sum_sim, big.mark = ",")
+    output$out_tot_area <- renderUI(tagList(tags$b(
+      paste("Total simulated area:", sum_f, "ha")
+    ), div(
+      paste("Excluded area:", sum_ex_f, "ha")
+    ), div(paste(
+      "Excluded ids:", ids_ex_f
+    ))))
     c <- color_list[1:length(lg_label)]
-    max_labl <- 0.5+max(nchar(colnames(bar_df)))/2
-    par(mar = c(max_labl, 4, 1,0.5)) 
+    max_labl <- 0.5 + max(nchar(colnames(bar_df))) / 2
+    par(mar = c(max_labl, 4, 1, 0.5))
     b <- as.matrix(bar_df)
-    barplot(b, col = c, las=3, ylab = "Area (ha)") 
-    legend("topright", legend = rev(lg_label), fill = rev(c), 
-           # border = "white", 
-           bg = "#FFFFFF40", box.lwd = 0, title = "Stages")
-  }, bg=NA, height = 300)
-
-  ## Create land cover table 
+    barplot(b,
+            col = c,
+            las = 3,
+            ylab = "Area (ha)")
+    legend(
+      "topright",
+      legend = rev(lg_label),
+      fill = rev(c),
+      # border = "white",
+      bg = "#FFFFFF40",
+      box.lwd = 0,
+      title = "Stages"
+    )
+  }, bg = NA, height = 300)
+  
+  ## Create land cover table
   output$inp_initlc_list <- renderExcel({
     # print(params$landcover_df)
     lc_df <- params$landcover_df[lc_field_display]
-    if(!is.null(lc_df)) lc_df <- lc_df[order(lc_df$lc_id),]
-    excelTable(data=lc_df, 
-               columns = lc_column, tableOverflow = T, tableWidth = "100%",
-               allowDeleteColumn = F, allowRenameColumn = F, allowInsertColumn = F,
-               minDimensions = c(NA,5), tableHeight = "800", autoIncrement = T,
-               csvFileName = "landcover_table", includeHeadersOnDownload = T)
-
+    if (!is.null(lc_df))
+      lc_df <- lc_df[order(lc_df$lc_id), ]
+    excelTable(
+      data = lc_df,
+      columns = lc_column,
+      tableOverflow = T,
+      tableWidth = "100%",
+      allowDeleteColumn = F,
+      allowRenameColumn = F,
+      allowInsertColumn = F,
+      minDimensions = c(NA, 5),
+      tableHeight = "800",
+      autoIncrement = T,
+      csvFileName = "landcover_table",
+      includeHeadersOnDownload = T
+    )
+    
   })
-
+  
   ## Land cover editing
   observeEvent(input$inp_initlc_list, {
     inp <- input$inp_initlc_list
-    if(length(inp$data) == 0) {
-      isolate(params$landcover_df <- params$landcover_df[0,])
+    if (length(inp$data) == 0) {
+      isolate(params$landcover_df <- params$landcover_df[0, ])
       return()
     }
     df_input <- excel_to_R(inp)
     names(df_input) <- lc_field_display
     df_input <- transform(df_input, lc_id = as.numeric(lc_id))
     isolate(df <- params$landcover_df)
-
+    
     params$landcover_df <- generate_LU_IDS(df_input)
-
-    if(!all(df$color %in% df_input$color)) show_notif_palette()
+    
+    if (!all(df$color %in% df_input$color))
+      show_notif_palette()
     ids <- df_input[!is.na(df_input$lc_id), "lc_id"]
-    if(length(ids) != length(unique(ids)))
-      showNotification("There were duplicates on the LU_ID, please revise the input setting", type = "error")
+    if (length(ids) != length(unique(ids)))
+      showNotification("There were duplicates on the LU_ID, please revise the input setting",
+                       type = "error")
   })
   
   ## load LC setting file ############################
   
   observeEvent(input$load_lc, {
-    showModal(modalDialog(
-      title = "Load land cover setting file",
-      fileInput("upload_lc_setting", NULL, accept = ".csv"),
-      footer = NULL, easyClose = T
-    ))
+    showModal(
+      modalDialog(
+        title = "Load land cover setting file",
+        fileInput("upload_lc_setting", NULL, accept = ".csv"),
+        footer = NULL,
+        easyClose = T
+      )
+    )
   })
   
   observeEvent(input$upload_lc_setting, {
     removeModal()
-    fpath <- input$upload_lc_setting$datapath 
-    if(is.null(fpath)) return()
+    fpath <- input$upload_lc_setting$datapath
+    if (is.null(fpath))
+      return()
     df <- read.csv(fpath)
-    # print(df)
-    if(!checkLoadedTable(df, c("n", "c", "c", "c", "c", "c"), "Land Cover Setting")) return()
+    print(df)
+    if (!checkLoadedTable(df, c("n", "c", "c", "c", "c", "c"), "Land Cover Setting"))
+      return()
     #update the main LC table
+    # print(df)
     params$landcover_df <- generate_LU_IDS(df)
     show_notif_palette()
   })
   
-  ## Import Land Cover 
+  ## Import Land Cover
   
   observeEvent(input$import_lc, {
-    showModal(modalDialog(
-      title = "Import land cover setting from previous FALLOW version",
-      fileInput("upload_lc_old", NULL, accept = ".par"),
-      footer = NULL, easyClose = T
-    ))
+    showModal(
+      modalDialog(
+        title = "Import land cover setting from previous FALLOW version",
+        fileInput("upload_lc_old", NULL, accept = ".par"),
+        footer = NULL,
+        easyClose = T
+      )
+    )
   })
   
   observeEvent(input$upload_lc_old, {
     removeModal()
-    if(is.null(input$upload_lc_old$datapath)) return()
+    if (is.null(input$upload_lc_old$datapath))
+      return()
     lc_df <- read.table(input$upload_lc_old$datapath)[-1]
-    if(!checkLoadedTable(lc_df, c("c", "n"), "Land Cover")) return()
+    if (!checkLoadedTable(lc_df, c("c", "n"), "Land Cover"))
+      return()
     names(lc_df) <- c("landcover", "lc_id")
     isolate(current_lc_df <- params$landcover_df)
     df <- import_old_lc_par(lc_df, current_lc_df)
     params$landcover_df <- generate_LU_IDS(df[lc_field])
   })
-
+  
   ## import LC pallete ############################
   
   observeEvent(input$import_pal, {
-    showModal(modalDialog(
-      title = "Import map color palette",
-      fileInput("upload_lcpall", NULL, accept = ".pal"),
-      footer = NULL, easyClose = T
-    ))
+    showModal(
+      modalDialog(
+        title = "Import map color palette",
+        fileInput("upload_lcpall", NULL, accept = ".pal"),
+        footer = NULL,
+        easyClose = T
+      )
+    )
   })
   
   observeEvent(input$upload_lcpall, {
     removeModal()
-    if(is.null(input$upload_lcpall$datapath)) return()
+    if (is.null(input$upload_lcpall$datapath))
+      return()
     pal_df <- read.table(input$upload_lcpall$datapath)
-    if(!checkLoadedTable(pal_df, c("n", "n", "n"), "Palette")) return()
-    cpal <- rgb(pal_df/255)
-    cpal_df <- data.frame(color = cpal, lc_id = c(0:(length(cpal)-1)))
+    if (!checkLoadedTable(pal_df, c("n", "n", "n"), "Palette"))
+      return()
+    cpal <- rgb(pal_df / 255)
+    cpal_df <- data.frame(color = cpal, lc_id = c(0:(length(cpal) - 1)))
     import_pallete_lc(cpal_df)
     show_notif_palette()
   })
@@ -686,36 +837,39 @@ server <- function(input, output, session) {
   ## save LC setting
   
   output$download_lc <- downloadHandler(
-    filename = function(){"landcover_setting.csv"}, 
-    content = function(fname){
+    filename = function() {
+      "landcover_setting.csv"
+    },
+    content = function(fname) {
       write.csv(params$landcover_df[lc_field_display], fname, row.names = F)
     }
   )
-
+  
   ##################################################
   ## LAND USE TABLE ################################
   ##################################################
-
+  
   ## generate LU and Other correlated tables!
-  generate_LU_IDS <- function(lc) { 
-    if(nrow(lc) == 0) {
-      isolate(params$landuse_df <- params$landuse_df[0,])
+  generate_LU_IDS <- function(lc) {
+    if (nrow(lc) == 0) {
+      isolate(params$landuse_df <- params$landuse_df[0, ])
       return(lc)
     }
-
+    
     ## update land use
     lu <- unique(lc[c("landuse", "landcover")])
     lu <- lu[lu$landuse != "" & !is.na(lu$landuse), ]
-    if(nrow(lu) == 0){
-      isolate(params$landuse_df <- params$landuse_df[0,])
+    if (nrow(lu) == 0) {
+      isolate(params$landuse_df <- params$landuse_df[0, ])
       return(lc)
     }
     
     short_df <- data.frame(landuse = landuse_list, landuse_short)
     lu <- merge(lu, short_df, by = "landuse", all.x = T)
-    lu$lu_group <- lu$landuse 
+    lu$lu_group <- lu$landuse
     lu$landuse <- apply(lu[c("lu_group", "landcover")], 1, combine_lulc)
     lu$lu_short <- apply(lu[c("landuse_short", "landcover")], 1, combine_lulc)
+    
     
     #set the lu_id
     lu$lu_id <- NA
@@ -723,39 +877,46 @@ server <- function(input, output, session) {
     m2 <- 0
     # luset <- lu[grepl("set", lu$landuse,ignore.case=T),]
     # lufor <- lu[grepl("for", lu$landuse,ignore.case=T),]
-    luset <- lu[lu$lu_group == "Settlement",]
-    lufor <- lu[lu$lu_group == "Forest",]
-    if(nrow(luset) > 0) {
+    luset <- lu[lu$lu_group == "Settlement", ]
+    lufor <- lu[lu$lu_group == "Forest", ]
+    if (nrow(luset) > 0) {
       lu[lu$landuse %in% luset$landuse, "lu_id"] <- c(1:nrow(luset))
       m1 <- max(lu$lu_id, na.rm = T)
     }
-    if(nrow(lufor) > 0) {
-      lu[lu$landuse %in% lufor$landuse, "lu_id"] <- c((m1+1):(m1+nrow(lufor)))
+    if (nrow(lufor) > 0) {
+      lu[lu$landuse %in% lufor$landuse, "lu_id"] <- c((m1 + 1):(m1 + nrow(lufor)))
       m2 <- max(lu$lu_id, na.rm = T)
     }
     
-    lu[is.na(lu$lu_id), "lu_id"] <- c((max(m1,m2)+1):nrow(lu))
+    lu[is.na(lu$lu_id), "lu_id"] <- c((max(m1, m2) + 1):nrow(lu))
     lu <- transform(lu, lu_id = as.numeric(lu_id))
-    lu <- lu[order(lu$lu_id),]
+    lu <- lu[order(lu$lu_id), ]
     #remove unused column
     lu$landcover <- NULL
     lu$landuse_short <- NULL
     ##
     isolate(ludf <- params$landuse_df)
-    if(is.null(ludf)) {
+    if (is.null(ludf)) {
       # lu$color <- rainbow(nrow(lu))
       lu$color <- hcl.colors(nrow(lu), 'Spectral')
     } else {
       lu$color <- ludf$color[1:nrow(lu)]
       n <- length(lu$color[is.na(lu$color) | lu$color == ""])
-      lu$color[is.na(lu$color) | lu$color == ""] <- hcl.colors(n, 'Spectral')
+      lu$color[is.na(lu$color) |
+                 lu$color == ""] <- hcl.colors(n, 'Spectral')
     }
     ## update lu_id on lc table
     lc$lulc <- apply(lc[c("landuse", "landcover")], 1, combine_lulc)
     lc$lu_id <- NULL
-    lc <- merge(lc, lu[c("lu_id", "landuse", "lu_short")], by.x = "lulc", by.y = "landuse", all.x = T)
-    lc <- lc[order(lc$lc_id),]
+    lc <- merge(lc,
+                lu[c("lu_id", "landuse", "lu_short")],
+                by.x = "lulc",
+                by.y = "landuse",
+                all.x = T)
+    lc <- lc[order(lc$lc_id), ]
     lc$lc_short <- paste0(lc$lu_short, toupper(substr(lc$growth_stage, 1, 2)))
+    
+    print(lc)
     # isolate(params$landcover_df <- lc[names(landcover_df)])
     params$landuse_df <- lu
     
@@ -767,43 +928,50 @@ server <- function(input, output, session) {
     ll_df <- data.frame(
       livelihood = c(livelihoodtype_base, lu_to_ll$landuse),
       ll_short = c(livelihoodtype_base, lu_to_ll$lu_short),
-      lu_id = c(rep(NA, length(livelihoodtype_base)) ,lu_to_ll$lu_id),
-      lu_group = c(livelihoodtype_base_group, lu_to_ll$lu_group))
-    ll_df$ll_id = c(1:nrow(ll_df))  
+      lu_id = c(rep(NA, length(
+        livelihoodtype_base
+      )) , lu_to_ll$lu_id),
+      lu_group = c(livelihoodtype_base_group, lu_to_ll$lu_group)
+    )
+    ll_df$ll_id = c(1:nrow(ll_df))
     params$livelihood_df <- ll_df[ll_field]
     
     ## update ll_id on lc table
     lc$ll_id <- NULL
-    lc <- merge(lc, ll_df[c("ll_id", "livelihood")], by.x = "lulc", by.y = "livelihood", all.x = T)
+    lc <- merge(lc,
+                ll_df[c("ll_id", "livelihood")],
+                by.x = "lulc",
+                by.y = "livelihood",
+                all.x = T)
     
     ############################################
     ## MAP TABLE ###############################
     ############################################
-
-    ## update list of suitability map input options  
+    
+    ## update list of suitability map input options
     ll_suit_df <- ll_df[ll_df$lu_group %in% c("Tree-based system", "Agriculture"), ]
     map_suit_df <- ll_suit_df[c("livelihood", "ll_id")]
     names(map_suit_df) <- c("label", "ll_id")
     map_data_df$ll_id <<- as.character(map_data_df$ll_id)
-    if(nrow(map_suit_df) > 0) {
+    if (nrow(map_suit_df) > 0) {
       map_suit_df$ll_id <- as.character(map_suit_df$ll_id)
       map_suit_df$group <- rep("suitability", nrow(map_suit_df))
-      map_suit_df$id <- paste0("suit_",c(1:nrow(map_suit_df)))
+      map_suit_df$id <- paste0("suit_", c(1:nrow(map_suit_df)))
       map_suit_df$file <- NA
       map_data_df$id <<- as.character(map_data_df$id)
-      map_data_df <<- map_data_df[map_data_df$group != "suitability",]
+      map_data_df <<- map_data_df[map_data_df$group != "suitability", ]
       map_data_df <<- rows_append(map_data_df, map_suit_df)
     }
-
+    
     ## update list of proximity map input options
     ll_dist_df <- ll_df[ll_df$lu_group %in% c("Forest", "Tree-based system", "Agriculture"), ]
-    lup <- paste("Processing industry of",  ll_dist_df$livelihood)
+    lup <- paste("Processing industry of", ll_dist_df$livelihood)
     map_dist_df <- data.frame(label = c(map_dist_label_base, lup))
     map_dist_df$group <- rep("proximity", nrow(map_dist_df))
-    map_dist_df$id <- paste0("proxi_",c(1:nrow(map_dist_df)))
+    map_dist_df$id <- paste0("proxi_", c(1:nrow(map_dist_df)))
     map_dist_df$file <- NA
     map_dist_df$ll_id <- c(rep("", length(map_dist_label_base)), ll_dist_df$ll_id)
-    map_data_df <<- map_data_df[map_data_df$group != "proximity",]
+    map_data_df <<- map_data_df[map_data_df$group != "proximity", ]
     map_data_df$id <<- as.character(map_data_df$id)
     map_data_df <<- rows_append(map_data_df, map_dist_df)
     ids <- map_data_df$id
@@ -814,7 +982,7 @@ server <- function(input, output, session) {
     bio <- lc[c("lc_id", "lc_short")]
     bio_id <- par_scalar_title_df$id[par_scalar_title_df$table == "bio_lc_df"]
     bio_fl <- par_scalar_field_df$field[par_scalar_field_df$id %in% bio_id]
-    lapply(bio_fl, function(x){
+    lapply(bio_fl, function(x) {
       bio[[x]] <<- 0
     })
     params$bio_lc_df <- bio
@@ -822,16 +990,16 @@ server <- function(input, output, session) {
     eco <- lc[c("lc_id", "lc_short")]
     eco_id <- par_scalar_title_df$id[par_scalar_title_df$table == "eco_lc_df"]
     eco_fl <- par_scalar_field_df$field[par_scalar_field_df$id %in% eco_id]
-    lapply(eco_fl, function(x){
+    lapply(eco_fl, function(x) {
       eco[[x]] <<- 0
     })
     params$eco_lc_df <- eco
-
+    
     ##########################################################
     bio_ll <- ll_df[c("ll_id", "ll_short")]
     bio_id <- par_scalar_title_df$id[par_scalar_title_df$table == "bio_ll_df"]
     bio_fl <- par_scalar_field_df$field[par_scalar_field_df$id %in% bio_id]
-    lapply(bio_fl, function(x){
+    lapply(bio_fl, function(x) {
       bio_ll[[x]] <<- 0
     })
     params$bio_ll_df <- bio_ll
@@ -839,7 +1007,7 @@ server <- function(input, output, session) {
     eco_ll <- ll_df[c("ll_id", "ll_short")]
     eco_id <- par_scalar_title_df$id[par_scalar_title_df$table == "eco_ll_df"]
     eco_fl <- par_scalar_field_df$field[par_scalar_field_df$id %in% eco_id]
-    lapply(eco_fl, function(x){
+    lapply(eco_fl, function(x) {
       eco_ll[[x]] <<- 0
     })
     params$eco_ll_df <- eco_ll
@@ -847,7 +1015,7 @@ server <- function(input, output, session) {
     soc_ll <- ll_df[c("ll_id", "ll_short")]
     soc_id <- par_scalar_title_df$id[par_scalar_title_df$table == "soc_ll_df"]
     soc_fl <- par_scalar_field_df$field[par_scalar_field_df$id %in% soc_id]
-    lapply(soc_fl, function(x){
+    lapply(soc_fl, function(x) {
       soc_ll[[x]] <<- 0
     })
     params$soc_ll_df <- soc_ll
@@ -855,12 +1023,21 @@ server <- function(input, output, session) {
     return(lc[lc_field])
   }
   
-  output$inp_lu <- renderExcel({    
-    excelTable(data=params$landuse_df[lu_field_display], 
-               columns = lu_column, tableOverflow = T, tableWidth = "100%",
-               allowDeleteColumn = F, allowRenameColumn = F, allowInsertRow = F,
-               allowDeleteRow = F, tableHeight = "800", rowDrag = F,
-               csvFileName = "landuse_table", includeHeadersOnDownload = T)
+  output$inp_lu <- renderExcel({
+    excelTable(
+      data = params$landuse_df[lu_field_display],
+      columns = lu_column,
+      tableOverflow = T,
+      tableWidth = "100%",
+      allowDeleteColumn = F,
+      allowRenameColumn = F,
+      allowInsertRow = F,
+      allowDeleteRow = F,
+      tableHeight = "800",
+      rowDrag = F,
+      csvFileName = "landuse_table",
+      includeHeadersOnDownload = T
+    )
   })
   
   ## Land use editing
@@ -874,48 +1051,57 @@ server <- function(input, output, session) {
   ## load saved LU pallete file ############################
   
   observeEvent(input$load_saved_lu_palette, {
-    showModal(modalDialog(
-      title = "Load saved land use color palette",
-      fileInput("upload_saved_lu_palette", NULL, accept = ".csv"),
-      footer = NULL, easyClose = T
-    ))
+    showModal(
+      modalDialog(
+        title = "Load saved land use color palette",
+        fileInput("upload_saved_lu_palette", NULL, accept = ".csv"),
+        footer = NULL,
+        easyClose = T
+      )
+    )
   })
   
   observeEvent(input$upload_saved_lu_palette, {
     removeModal()
-    fpath <- input$upload_saved_lu_palette$datapath 
-    if(is.null(fpath)) return()
+    fpath <- input$upload_saved_lu_palette$datapath
+    if (is.null(fpath))
+      return()
     isolate(df <- params$landuse_df)
     pal_df <- read.csv(fpath)
-    if(!checkLoadedTable(pal_df, c("n", "c"), "saved Land Use Palette")) return()
+    if (!checkLoadedTable(pal_df, c("n", "c"), "saved Land Use Palette"))
+      return()
     df$color <- NULL
     df <- merge(df, pal_df, by = "id", all.x = T)
     #update the main LC table
     params$landuse_df <- df
     show_notif_palette()
   })
-
+  
   ## import LU palette file ############################
   
   observeEvent(input$import_lu_palette, {
-    showModal(modalDialog(
-      title = "Import land use color pallete",
-      fileInput("upload_lupall", NULL, accept = ".pal"),
-      footer = NULL, easyClose = T
-    ))
+    showModal(
+      modalDialog(
+        title = "Import land use color pallete",
+        fileInput("upload_lupall", NULL, accept = ".pal"),
+        footer = NULL,
+        easyClose = T
+      )
+    )
   })
   
   observeEvent(input$upload_lupall, {
-    if(is.null(input$upload_lupall$datapath)) return()
+    if (is.null(input$upload_lupall$datapath))
+      return()
     isolate(df <- params$landuse_df)
     pal_df <- read.table(input$upload_lupall$datapath)
-    if(ncol(pal_df) != 3 | !all(sapply(pal_df, is.numeric))) {
+    if (ncol(pal_df) != 3 | !all(sapply(pal_df, is.numeric))) {
       removeModal()
       show_alert_file_error("Palette")
       return()
     }
-    cpal <- rgb(pal_df/255)
-    cpal_df <- data.frame(color = cpal, lu_id = c(0:(length(cpal)-1)))
+    cpal <- rgb(pal_df / 255)
+    cpal_df <- data.frame(color = cpal, lu_id = c(0:(length(cpal) - 1)))
     df$color <- NULL
     df <- merge(df, cpal_df, by = "lu_id", all.x = T)
     #update the main LC table
@@ -927,20 +1113,30 @@ server <- function(input, output, session) {
   
   ## save LU palette
   output$download_lu <- downloadHandler(
-    filename = function(){"landuse_palette.csv"}, 
-    content = function(fname){
+    filename = function() {
+      "landuse_palette.csv"
+    },
+    content = function(fname) {
       write.csv(params$landuse_df[c("lu_id", "color")], fname, row.names = F)
     }
   )
-
+  
   output$inp_ll <- renderExcel({
-    excelTable(data=params$livelihood_df[ll_field_display], 
-               columns = ll_column, tableOverflow = T, tableWidth = "100%",
-               allowDeleteColumn = F, allowRenameColumn = F, allowInsertRow = F,
-               allowDeleteRow = F, tableHeight = "800", 
-               csvFileName = "livelihood_table", includeHeadersOnDownload = T)
+    excelTable(
+      data = params$livelihood_df[ll_field_display],
+      columns = ll_column,
+      tableOverflow = T,
+      tableWidth = "100%",
+      allowDeleteColumn = F,
+      allowRenameColumn = F,
+      allowInsertRow = F,
+      allowDeleteRow = F,
+      tableHeight = "800",
+      csvFileName = "livelihood_table",
+      includeHeadersOnDownload = T
+    )
   })
-
+  
   ##################################################
   ## SPATIAL DATA INPUT ############################
   ##################################################
@@ -961,22 +1157,21 @@ server <- function(input, output, session) {
     # isolate(u <- v_inp$uploaded_maps)
     isolate(u <- params$map_list)
     fu <- names(u)
-    for(i in 1:length(p)) {
-      if(input$upload_spatial$type[i] == "application/x-zip-compressed") {
+    for (i in 1:length(p)) {
+      if (input$upload_spatial$type[i] == "application/x-zip-compressed") {
         file_list <- unzip(p[i], list = TRUE)
         unzip(p[i], exdir = map_dir)
-        for(f in file_list$Name) {
-          if(f %in% fu) {
+        for (f in file_list$Name) {
+          if (f %in% fu) {
             fdups <- append(fdups, f)
           } else {
             m <- NULL
-            suppressWarnings(suppressMessages(
-              try(m <- read_stars(paste0(map_dir, "/",f), proxy = T), silent = T)
+            suppressWarnings(suppressMessages(try(m <- read_stars(paste0(map_dir, "/", f), proxy = T), silent = T)
             ))
-            if(is.null(m)) {
+            if (is.null(m)) {
               ferrs <- append(ferrs, f)
             } else {
-              if(is(m[[1]], "factor")) {
+              if (is(m[[1]], "factor")) {
                 m <- map_factor_to_numeric(m)
               }
               mlist[[f]] <- m
@@ -986,17 +1181,16 @@ server <- function(input, output, session) {
         # unlink(map_dir)
       } else {
         f <- input$upload_spatial$name[i]
-        if(f %in% fu) {
+        if (f %in% fu) {
           fdups <- append(fdups, f)
         } else {
           m <- NULL
-          suppressWarnings(suppressMessages(
-            try(m <- read_stars(p[i], proxy = T), silent = T)
+          suppressWarnings(suppressMessages(try(m <- read_stars(p[i], proxy = T), silent = T)
           ))
-          if(is.null(m)) {
+          if (is.null(m)) {
             ferrs <- append(ferrs, f)
           } else {
-            if(is(m[[1]], "factor")) {
+            if (is(m[[1]], "factor")) {
               m <- map_factor_to_numeric(m)
             }
             mlist[[f]] <- m
@@ -1005,25 +1199,31 @@ server <- function(input, output, session) {
       }
     }
     errm <- ""
-    if(length(fdups) > 0) {
-      errm <- paste("<p><b>Duplicated files:</b>", paste(fdups, collapse = ", "), "</p>")
+    if (length(fdups) > 0) {
+      errm <- paste("<p><b>Duplicated files:</b>",
+                    paste(fdups, collapse = ", "),
+                    "</p>")
     }
-    if(length(ferrs) > 0) {
-      errm <- paste(errm, "<p><b>Error files:</b>", paste(ferrs, collapse = ", "), "</p>")
+    if (length(ferrs) > 0) {
+      errm <- paste(errm,
+                    "<p><b>Error files:</b>",
+                    paste(ferrs, collapse = ", "),
+                    "</p>")
     }
-    if(errm != "") {
+    if (errm != "") {
       sendSweetAlert(
         session = session,
         title = "Upload error",
         text =  HTML(errm),
-        type = "error", html = TRUE
+        type = "error",
+        html = TRUE
       )
     }
     add_map_list(mlist)
   })
   
-  add_map_list <- function(mlist){
-    if(length(mlist) > 0) {
+  add_map_list <- function(mlist) {
+    if (length(mlist) > 0) {
       isolate(u <- params$map_list)
       u <- append(u, mlist)
       fu <- names(u)
@@ -1035,110 +1235,155 @@ server <- function(input, output, session) {
   
   observe({
     items <- uploaded_map_items()
-    updateOrderInput(session, "map_upload", items = items, item_class = "warning")
+    updateOrderInput(session,
+                     "map_upload",
+                     items = items,
+                     item_class = "warning")
   })
-
+  
   ## Uploaded map box
   output$map_upload_box <- renderUI({
     ids <- get_drop_id(map_row_ids())
     items <- input$map_upload
     tagList(
-      orderInput("map_upload", NULL, items = items, width = "100%", connect = c("map_delete", ids),
-               placeholder = "The uploaded maps will be listed here...", item_class = "warning"),
+      orderInput(
+        "map_upload",
+        NULL,
+        items = items,
+        width = "100%",
+        connect = c("map_delete", ids),
+        placeholder = "The uploaded maps will be listed here...",
+        item_class = "warning"
+      ),
       uiOutput("drop_delete")
     )
   })
-
+  
   ## delete box
   output$drop_delete <- renderUI({
-    if(!is.null(deleted_map_items())) deleted_map_items(NULL)
+    if (!is.null(deleted_map_items()))
+      deleted_map_items(NULL)
     ids <- get_drop_id(map_row_ids())
     tagList(
       icon("trash-can"),
-      orderInput("map_delete", NULL, items = NULL, width = "75%", connect = c("map_upload", ids),
-                 placeholder = "Drop here to delete...", class = "delete_box")
+      orderInput(
+        "map_delete",
+        NULL,
+        items = NULL,
+        width = "75%",
+        connect = c("map_upload", ids),
+        placeholder = "Drop here to delete...",
+        class = "delete_box"
+      )
     )
   })
   
   ## General map table
   output$general_maps <- renderUI({
-    if(is_update_map_conf()) isolate(is_update_map_conf(F))
+    if (is_update_map_conf())
+      isolate(is_update_map_conf(F))
     tagList(
-      h5(map_input_df[map_input_df$box_id == "general","box_desc"]),
+      h5(map_input_df[map_input_df$box_id == "general", "box_desc"]),
       hr(style = "border: 1px solid lightgray"),
-      fluidRow(apply(map_data_df[map_data_df$group == "general",], 1, create_map_row)),
+      fluidRow(apply(map_data_df[map_data_df$group == "general", ], 1, create_map_row)),
       tags$i(map_input_footer)
     )
   })
   
   ## Suitability and proximity map table
-  apply(map_input_df[c(2,3),], 1, function(x) {
+  apply(map_input_df[c(2, 3), ], 1, function(x) {
     output[[paste0(x["box_id"], "_maps")]] <- renderUI({
       ll_df <- params$livelihood_df
-      if(is.null(ll_df)) {
-        return(paste("Please complete Land Cover parameters to get 
-               the input options on", x["box_title"]))
+      if (is.null(ll_df)) {
+        return(paste(
+          "Please complete Land Cover parameters to get
+               the input options on",
+          x["box_title"]
+        ))
       }
-      if(is_update_map_conf()) isolate(is_update_map_conf(F))
-      ms_df <- map_data_df[map_data_df$group == x["box_id"],]
+      if (is_update_map_conf())
+        isolate(is_update_map_conf(F))
+      ms_df <- map_data_df[map_data_df$group == x["box_id"], ]
       tagList(
         h5(x["box_desc"]),
         hr(style = "border: 1px solid lightgray"),
-        isolate(fluidRow(apply(ms_df, 1, create_map_row))),
+        isolate(fluidRow(apply(
+          ms_df, 1, create_map_row
+        ))),
         tags$i(map_input_footer)
       )
     })
   })
   
   ## generate row of map input
-  create_map_row <- function(x){
-    co <- c("map_upload", "map_delete",get_drop_id(map_data_df$id))
+  create_map_row <- function(x) {
+    co <- c("map_upload", "map_delete", get_drop_id(map_data_df$id))
     f <- x[["file"]]
     drop_id <- get_drop_id(x["id"])
-    if(is.na(f)) f <- NULL
+    if (is.na(f))
+      f <- NULL
     tagList(
-      column(6, orderInput(drop_id, x["label"], items = f, 
-                           connect = co, 
-                           ondblclick = "dbFunction(this)",
-                           class = "drop_box", width = "100%",
-                           placeholder = "Drag the map here...",
-                           item_class = "warning")),
-      column(3, plotOutput(get_plot_s_id(x["id"]), width = "100%", height = "80px"), 
-             ondblclick = "dbFunction(this)", id = paste0("x", drop_id)),
+      column(
+        6,
+        orderInput(
+          drop_id,
+          x["label"],
+          items = f,
+          connect = co,
+          ondblclick = "dbFunction(this)",
+          class = "drop_box",
+          width = "100%",
+          placeholder = "Drag the map here...",
+          item_class = "warning"
+        )
+      ),
+      column(
+        3,
+        plotOutput(get_plot_s_id(x["id"]), width = "100%", height = "80px"),
+        ondblclick = "dbFunction(this)",
+        id = paste0("x", drop_id)
+      ),
       column(3, uiOutput(get_sum_id(x["id"]))),
       column(12, hr())
-    )}
-
-  ## save the config map  
-  lapply(map_input_df$box_id, function(x){
+    )
+  }
+  
+  ## save the config map
+  lapply(map_input_df$box_id, function(x) {
     output[[paste0("download_", x, "_map")]] <- downloadHandler(
-      filename = function(){paste0(x,"_map.csv")}, 
-      content = function(fname){
-        write.csv(map_data_df[map_data_df$group == x, c("label", "id", "file")], 
-                  fname, row.names = F, na = "")
+      filename = function() {
+        paste0(x, "_map.csv")
+      },
+      content = function(fname) {
+        write.csv(map_data_df[map_data_df$group == x, c("label", "id", "file")],
+                  fname,
+                  row.names = F,
+                  na = "")
       }
-    )  
+    )
   })
-
+  
   ## Load general map table
-  lapply(map_input_df$box_id, function(x){
+  lapply(map_input_df$box_id, function(x) {
     observeEvent(input[[paste0("load_", x, "_map")]], {
       showModal(modalDialog(
         title = paste("Load", x, "map configuration file"),
         fileInput("upload_general_map", NULL, accept = ".csv"),
-        footer = NULL, easyClose = T
+        footer = NULL,
+        easyClose = T
       ))
     })
     
   })
-
+  
   observeEvent(input$upload_general_map, {
     removeModal()
-    fpath <- input$upload_general_map$datapath 
-    if(is.null(fpath)) return()
+    fpath <- input$upload_general_map$datapath
+    if (is.null(fpath))
+      return()
     load_df <- read.csv(fpath)
     h <- c("id", "file")
-    if(!all(h %in% names(load_df))) {
+    if (!all(h %in% names(load_df))) {
       show_alert_file_error("Map Configuration")
       return()
     }
@@ -1146,23 +1391,29 @@ server <- function(input, output, session) {
     names(load_df) <- c("id", "file_new")
     isolate(u <- params$map_list)
     fu <- names(u)
-    if(is.null(fu)) {
-      errf <- load_df$file_new 
+    if (is.null(fu)) {
+      errf <- load_df$file_new
       uploaded_map_config_df <<- NULL
     } else {
       errf <- setdiff(load_df$file_new, fu)
-      uploaded_map_config_df <<- load_df[load_df$file_new %in% fu,]
+      uploaded_map_config_df <<- load_df[load_df$file_new %in% fu, ]
     }
-    if(length(errf) > 0) {
+    if (length(errf) > 0) {
       confirmSweetAlert(
         session = session,
         inputId = "confirm_upload",
         title = "Unmatched configuration",
-        text =  HTML(paste("<P>The defined files are not exist on the uploaded map list: <b>",
-                     paste(errf, collapse = ", "), "</b></p>"),
-                     "<i>* please upload the required map file first</i><hr>",
-                     "<p>Continue with the remaining file setting?</p>"),
-        type = "warning", html = TRUE,
+        text =  HTML(
+          paste(
+            "<P>The defined files are not exist on the uploaded map list: <b>",
+            paste(errf, collapse = ", "),
+            "</b></p>"
+          ),
+          "<i>* please upload the required map file first</i><hr>",
+          "<p>Continue with the remaining file setting?</p>"
+        ),
+        type = "warning",
+        html = TRUE,
       )
     } else {
       uploadMapConfig()
@@ -1170,18 +1421,24 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$confirm_upload, {
-    if(!input$confirm_upload) return()
+    if (!input$confirm_upload)
+      return()
     uploadMapConfig()
   })
   
   
   ## upload the configuration map file
   uploadMapConfig <- function() {
-    if(is.null(uploaded_map_config_df)) return()
-    if(nrow(uploaded_map_config_df) == 0) return()
+    if (is.null(uploaded_map_config_df))
+      return()
+    if (nrow(uploaded_map_config_df) == 0)
+      return()
     map_data_df$id <- factor(map_data_df$id, levels = map_data_df$id)
     # join the uploaded config with main table
-    df <- merge(map_data_df, uploaded_map_config_df, by = "id", all.x = T)
+    df <- merge(map_data_df,
+                uploaded_map_config_df,
+                by = "id",
+                all.x = T)
     # remove the file on the old location
     df$file[df$file %in% df$file_new] <- NA
     df$file_new[is.na(df$file_new)] <- df$file[is.na(df$file_new)]
@@ -1194,17 +1451,20 @@ server <- function(input, output, session) {
     fdif <- setdiff(fu, df$file)
     uploaded_map_items(fdif)
     is_update_map_conf(T)
-  } 
-
+  }
+  
   # limit the drop zone to one item only
   validateDropMap <- function(dropped, id_drop_map) {
     id <- gsub("drop_", "", id_drop_map)
     f <- map_data_df[map_data_df$id == id, "file"]
-    if(!is.na(f)) dropped <- dropped[dropped != f]
-    if(length(dropped) == 0) return()
+    if (!is.na(f))
+      dropped <- dropped[dropped != f]
+    if (length(dropped) == 0)
+      return()
     # remove the dropped file from other rows
-    idm <-map_data_df[!is.na(map_data_df$file) & map_data_df$file == dropped, "id"]
-    if(!is.null(idm)) {
+    idm <- map_data_df[!is.na(map_data_df$file) &
+                         map_data_df$file == dropped, "id"]
+    if (!is.null(idm)) {
       map_data_df[map_data_df$id == idm, "file"] <<- NA
     }
     map_data_df[map_data_df$id == id, "file"] <<- dropped
@@ -1232,17 +1492,15 @@ server <- function(input, output, session) {
     return(paste0("hist_s_", x))
   }
   
-  observe(
-    lapply(get_drop_id(map_row_ids()) , function(x) {
-      observeEvent(input[[x]], {
-        validateDropMap(input[[x]], x)
-      })
+  observe(lapply(get_drop_id(map_row_ids()) , function(x) {
+    observeEvent(input[[x]], {
+      validateDropMap(input[[x]], x)
     })
-  )
+  }))
   
   observeEvent(input$map_upload, {
     intr <- intersect(map_data_df$file, input$map_upload)
-    if(length(intr) > 0) {
+    if (length(intr) > 0) {
       map_data_df[map_data_df$file %in% intr, "file"] <<- NA
     }
     uploaded_map_items(input$map_upload)
@@ -1250,7 +1508,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$map_delete, {
     intr <- intersect(map_data_df$file, input$map_delete)
-    if(length(intr) > 0) {
+    if (length(intr) > 0) {
       map_data_df[map_data_df$file %in% intr, "file"] <<- NA
     }
     params$map_list[[input$map_delete]] <<- NULL
@@ -1260,53 +1518,67 @@ server <- function(input, output, session) {
   
   observe(lapply(map_row_ids(), function(x) {
     output[[get_plot_s_id(x)]] <- renderPlot({
-      if(is.null(params$map_list)) return()
+      if (is.null(params$map_list))
+        return()
       f <- input[[get_drop_id(x)]]
-      if(length(f) == 0) return()
+      if (length(f) == 0)
+        return()
       # m <- params$map_list[[f[1]]]
       m <- st_as_stars(params$map_list[[f[1]]])
-      if(all(is.na(m[[1]]))) return()
+      if (all(is.na(m[[1]])))
+        return()
       pal <- get_map_color(m)
-      suppressWarnings(
-        suppressMessages(
-          tryCatch({
-            plot(m, main = NULL, col = pal, key.pos = NULL, breaks = 'equal')
-          }, error=function(cond) {
-            plot(m, main = NULL, key.pos = NULL, breaks = 'equal')
-          })
-          
-      ))
+      suppressWarnings(suppressMessages(tryCatch({
+        plot(
+          m,
+          main = NULL,
+          col = pal,
+          key.pos = NULL,
+          breaks = 'equal'
+        )
+      }, error = function(cond) {
+        plot(m,
+             main = NULL,
+             key.pos = NULL,
+             breaks = 'equal')
+      })))
     })
   }))
   
   observe(lapply(map_row_ids(), function(x) {
     output[[get_sum_id(x)]] <- renderUI({
-      if(is.null(params$map_list)) return()
+      if (is.null(params$map_list))
+        return()
       f <- input[[get_drop_id(x)]]
-      if(length(f) == 0) return()
+      if (length(f) == 0)
+        return()
       mst <- st_as_stars(params$map_list[[f[1]]])
       m <- as.vector(mst[[1]])
       # m <- as.vector(params$map_list[[f[1]]][[1]])
-      if(all(is.na(m))) return()
-      suppressWarnings(
-        tagList(
-          div(paste("Min:", round(min(m, na.rm = T), 2))),
-          div(paste("Max:", round(max(m, na.rm = T), 2))),
-          div(paste("Avg:", round(mean(m, na.rm = T), 2))),
-          div(paste("Med:", round(median(m, na.rm = T),2)))
-        )
-      )
+      if (all(is.na(m)))
+        return()
+      suppressWarnings(tagList(div(paste(
+        "Min:", round(min(m, na.rm = T), 2)
+      )), div(paste(
+        "Max:", round(max(m, na.rm = T), 2)
+      )), div(paste(
+        "Avg:", round(mean(m, na.rm = T), 2)
+      )), div(paste(
+        "Med:", round(median(m, na.rm = T), 2)
+      ))))
     })
   }))
-
+  
   disp_map <- reactiveValues(map = NULL, title = NULL)
-
+  
   observeEvent(input$double_clicked, {
     dbid <- input$double_clicked
-    if(startsWith(dbid, "x")) dbid <- sub('.', '', dbid)
+    if (startsWith(dbid, "x"))
+      dbid <- sub('.', '', dbid)
     id <- gsub("drop_", "", dbid)
     f <- input[[dbid]]
-    if(is.null(f)) return()
+    if (is.null(f))
+      return()
     lab <- map_data_df[map_data_df$id == id, "label"]
     title <- paste0(lab, " [", f, "]")
     disp_map$title <- title
@@ -1314,31 +1586,38 @@ server <- function(input, output, session) {
     # m <- params$map_list[[f]]
     m <- st_as_stars(params$map_list[[f]])
     disp_map$map <- generateMapPlot(f, m)
-    if(!is.null(input$mapbox)) {
-      if(!input$mapbox$visible) updateBox("mapbox", action = "restore")
-      if(input$mapbox$collapsed) updateBox("mapbox", action = "toggle")
+    if (!is.null(input$mapbox)) {
+      if (!input$mapbox$visible)
+        updateBox("mapbox", action = "restore")
+      if (input$mapbox$collapsed)
+        updateBox("mapbox", action = "toggle")
     }
   })
-
-  generateMapPlot <- function(id, map)  {  
+  
+  generateMapPlot <- function(id, map)  {
     out_id <- paste0("mapplot_", id)
     pal <- get_map_color(map)
     #check Coordinate Reference System (CRS)
-    if(is.na(st_crs(map))) {
+    if (is.na(st_crs(map))) {
       output[[out_id]] <- renderPlot({
-        suppressWarnings(
-          suppressMessages(
-            tryCatch({
-              plot(map, main = NULL, col = pal, breaks = 'equal')
-            }, error=function(cond) {
-              plot(map, main = NULL, breaks = 'equal')
-            })
-        ))
+        suppressWarnings(suppressMessages(tryCatch({
+          plot(map,
+               main = NULL,
+               col = pal,
+               breaks = 'equal')
+        }, error = function(cond) {
+          plot(map, main = NULL, breaks = 'equal')
+        })))
       })
       plotOutput(out_id)
     } else {
       suppressMessages({
-        mv <- mapview(map, na.color = "#FFFFFF00", layer.name = id, col.regions = pal)
+        mv <- mapview(
+          map,
+          na.color = "#FFFFFF00",
+          layer.name = id,
+          col.regions = pal
+        )
       })
       output[[out_id]] <- renderLeaflet(mv@map)
       leafletOutput(out_id)
@@ -1346,123 +1625,142 @@ server <- function(input, output, session) {
   }
   
   output$map_display <- renderUI({
-    if(is.null(disp_map$map)) return()
-    box(id = "mapbox", title = disp_map$title, disp_map$map, collapsible = T,  
-        width = 12, closable = T)
+    if (is.null(disp_map$map))
+      return()
+    box(
+      id = "mapbox",
+      title = disp_map$title,
+      disp_map$map,
+      collapsible = T,
+      width = 12,
+      closable = T
+    )
   })
-
-
+  
+  
   
   ##################################################
   ## SCALAR INPUT ############################
   ##################################################
   get_unit_label <- function(u) {
-    if(is.na(u)) return(NULL)
+    if (is.na(u))
+      return(NULL)
     p("Unit:", u)
   }
   
-  apply(par_scalar_title_df, 1, function(x){
+  apply(par_scalar_title_df, 1, function(x) {
     output[[paste0("out_", x["id"])]] <- renderUI({
       b_df <- params[[x["table"]]]
-      if(is.null(b_df)) { 
+      if (is.null(b_df)) {
         lclink <- paste0("lc_", x["id"])
         observeEvent(input[[lclink]], {
-          updateTabItems(session, inputId ="sidemenu", selected = "inp_landcover")
+          updateTabItems(session, inputId = "sidemenu", selected = "inp_landcover")
         })
         tagList(
           HTML(lcsetting_req),
           actionButton(lclink, "Go to Land Cover initialization...")
         )
       } else {
-        tagList(
-          HTML(x["desc"]),
-          get_unit_label(x["unit"]),
-          excelOutput(paste0("table_", x["id"]), height = "100%")
-        )
+        tagList(HTML(x["desc"]),
+                get_unit_label(x["unit"]),
+                excelOutput(paste0("table_", x["id"]), height = "100%"))
       }
     })
   })
   
   
-  apply(par_scalar_title_df, 1, function(x){
+  apply(par_scalar_title_df, 1, function(x) {
     output[[paste0("table_", x["id"])]] <- renderExcel({
       b_df <- params[[x["table"]]]
-      if(is.null(b_df)) return() 
-      fl <- par_scalar_field_df[par_scalar_field_df$id == x["id"],]
+      if (is.null(b_df))
+        return()
+      fl <- par_scalar_field_df[par_scalar_field_df$id == x["id"], ]
       n <- nrow(fl)
       b_column <- data.frame(
-        title=c("ID", x["table_id_str_label"], fl$title),
-        type=c("numeric", "text", rep("text", n)),
+        title = c("ID", x["table_id_str_label"], fl$title),
+        type = c("numeric", "text", rep("text", n)),
         align = c("right", "left", rep("right", n)),
         readOnly = c(T, T, rep(F, n))
       )
-      excelTable(data = b_df[c(x["table_id"], x["table_id_str"], fl$field)], columns = b_column, 
-                 allowDeleteColumn = F, allowRenameColumn = F, allowInsertRow = F,
-                 allowDeleteRow = F, tableHeight = "800", rowDrag = F,
-                 csvFileName = paste0(x["id"], "_table"), includeHeadersOnDownload = T,
-                 tableOverflow = T, tableWidth = "100%")
+      excelTable(
+        data = b_df[c(x["table_id"], x["table_id_str"], fl$field)],
+        columns = b_column,
+        allowDeleteColumn = F,
+        allowRenameColumn = F,
+        allowInsertRow = F,
+        allowDeleteRow = F,
+        tableHeight = "800",
+        rowDrag = F,
+        csvFileName = paste0(x["id"], "_table"),
+        includeHeadersOnDownload = T,
+        tableOverflow = T,
+        tableWidth = "100%"
+      )
     })
   })
   
-
+  
   ## scalar editing
-  apply(par_scalar_title_df, 1, function(x){
+  apply(par_scalar_title_df, 1, function(x) {
     observeEvent(input[[paste0("table_", x["id"])]], {
       inp <- input[[paste0("table_", x["id"])]]
       df_input <- excel_to_R(inp)
-      fl <- par_scalar_field_df[par_scalar_field_df$id == x["id"],]
+      fl <- par_scalar_field_df[par_scalar_field_df$id == x["id"], ]
       names(df_input) <- c("ID", x["table_id_str"], fl$field)
       isolate(b_df <- params[[x["table"]]])
-      suppressWarnings(
-        b_df[fl$field] <- data.frame(apply(
-          df_input[fl$field], 2, function(x) as.numeric(as.character(x))))
-      )
+      suppressWarnings(b_df[fl$field] <- data.frame(apply(df_input[fl$field], 2, function(x)
+        as.numeric(as.character(x)))))
       params[[x["table"]]] <- b_df
     })
   })
   
   ## Load scalar data ############################
-  apply(par_scalar_title_df, 1, function(x){
+  apply(par_scalar_title_df, 1, function(x) {
     observeEvent(input[[paste0("load_", x["id"])]], {
       showModal(modalDialog(
         title = paste("Upload", x["title"], "table"),
         fileInput(paste0("upload_", x["id"]), NULL, accept = ".csv"),
-        footer = NULL, easyClose = T
+        footer = NULL,
+        easyClose = T
       ))
     })
   })
   
-  apply(par_scalar_title_df, 1, function(x){
+  apply(par_scalar_title_df, 1, function(x) {
     observeEvent(input[[paste0("upload_", x["id"])]], {
       inp <- input[[paste0("upload_", x["id"])]]
-      if(is.null(inp$datapath)) return()
+      if (is.null(inp$datapath))
+        return()
       inp_df <- read.csv(inp$datapath)
-      fl <- par_scalar_field_df[par_scalar_field_df$id == x["id"],]
+      fl <- par_scalar_field_df[par_scalar_field_df$id == x["id"], ]
       n <- nrow(fl)
-      if(!checkLoadedTable(inp_df, c("n", "c", rep("n", n)), x["title"])) {
+      if (!checkLoadedTable(inp_df, c("n", "c", rep("n", n)), x["title"])) {
         removeModal()
         return()
       }
       isolate(b_df <- params[[x["table"]]])
-      if(is.null(b_df)) return()
+      if (is.null(b_df))
+        return()
       nreq <- nrow(b_df)
       nload <- nrow(inp_df)
-      if(nreq != nload) {
+      if (nreq != nload) {
         show_alert_nrow_error(nreq, nload)
         return()
       }
-      b_df[fl$field] <- inp_df[c(3:(n+2))]
+      b_df[fl$field] <- inp_df[c(3:(n + 2))]
       params[[x["table"]]] <- b_df
       removeModal()
     })
   })
   
   ## save scalar data
-  apply(par_scalar_title_df, 1, function(x){
+  apply(par_scalar_title_df, 1, function(x) {
     output[[paste0("download_", x["id"])]] <- downloadHandler(
-      filename = function(){paste0(x["id"], "_table.csv")}, 
-      content = function(fname){
-        fl <- par_scalar_field_df[par_scalar_field_df$id == x["id"],]
+      filename = function() {
+        paste0(x["id"], "_table.csv")
+      },
+      content = function(fname) {
+        fl <- par_scalar_field_df[par_scalar_field_df$id == x["id"], ]
         isolate(b_df <- params[[x["table"]]])
         data_df <- b_df[c(x["table_id"], x["table_id_str"], fl$field)]
         names(data_df) <- c("ID", x["table_id_str_label"], fl$title)
@@ -1472,83 +1770,90 @@ server <- function(input, output, session) {
   })
   
   ##### OTHER #############
-  apply(other_inp_df, 1, function(x){
+  apply(other_inp_df, 1, function(x) {
     output[[paste0("out_", x["id"])]] <- renderUI({
-      tagList(
-        HTML(x["desc"]),
-        excelOutput(paste0("table_", x["id"]), height = "100%")
-      )
+      tagList(HTML(x["desc"]), excelOutput(paste0("table_", x["id"]), height = "100%"))
     })
   })
   
-  apply(other_inp_df, 1, function(x){
+  apply(other_inp_df, 1, function(x) {
     output[[paste0("table_", x["id"])]] <- renderExcel({
       b_df <- params[[x["table"]]]
       c_df <- other_inp_col_list[[x["id"]]]
       n <- nrow(c_df)
       b_column <- data.frame(
-        title= c_df$label,
-        type= rep("text", n),
-        align = c("left", "left", rep("right", n-2)),
-        readOnly = c(T, T, rep(F, n-2))
+        title = c_df$label,
+        type = rep("text", n),
+        align = c("left", "left", rep("right", n - 2)),
+        readOnly = c(T, T, rep(F, n - 2))
       )
-      excelTable(data = b_df[c_df$col], columns = b_column, 
-                 allowDeleteColumn = F, allowRenameColumn = F, allowInsertRow = F,
-                 allowDeleteRow = F, #tableHeight = "200px", 
-                 rowDrag = F,  #autoFill=F, autoWidth=FALSE,
-                 csvFileName = paste0(x["id"], "_table"), includeHeadersOnDownload = T,
-                 tableOverflow = T, tableWidth = "100%")
+      excelTable(
+        data = b_df[c_df$col],
+        columns = b_column,
+        allowDeleteColumn = F,
+        allowRenameColumn = F,
+        allowInsertRow = F,
+        allowDeleteRow = F,
+        #tableHeight = "200px",
+        rowDrag = F,
+        #autoFill=F, autoWidth=FALSE,
+        csvFileName = paste0(x["id"], "_table"),
+        includeHeadersOnDownload = T,
+        tableOverflow = T,
+        tableWidth = "100%"
+      )
     })
   })
   
   ## OTHER editing
-  apply(other_inp_df, 1, function(x){
+  apply(other_inp_df, 1, function(x) {
     observeEvent(input[[paste0("table_", x["id"])]], {
       inp <- input[[paste0("table_", x["id"])]]
       df_input <- excel_to_R(inp)
       c_df <- other_inp_col_list[[x["id"]]]
       names(df_input) <- c_df$col
-      cval <- c_df$col[! c_df$col %in% c("label", "unit")]
+      cval <- c_df$col[!c_df$col %in% c("label", "unit")]
       isolate(b_df <- params[[x["table"]]])
-      suppressWarnings(
-        b_df[cval] <- data.frame(apply(
-          df_input[cval], 2, function(x) as.numeric(as.character(x))))
-      )
+      suppressWarnings(b_df[cval] <- data.frame(apply(df_input[cval], 2, function(x)
+        as.numeric(as.character(x)))))
       params[[x["table"]]] <- b_df
     })
   })
   
   ## Load scalar data ############################
-  apply(other_inp_df, 1, function(x){
+  apply(other_inp_df, 1, function(x) {
     observeEvent(input[[paste0("load_", x["id"])]], {
       showModal(modalDialog(
         title = paste("Upload", x["title"], "table"),
         fileInput(paste0("upload_", x["id"]), NULL, accept = ".csv"),
-        footer = NULL, easyClose = T
+        footer = NULL,
+        easyClose = T
       ))
     })
   })
   
-  apply(other_inp_df, 1, function(x){
+  apply(other_inp_df, 1, function(x) {
     observeEvent(input[[paste0("upload_", x["id"])]], {
       inp <- input[[paste0("upload_", x["id"])]]
-      if(is.null(inp$datapath)) return()
+      if (is.null(inp$datapath))
+        return()
       inp_df <- read.csv(inp$datapath)
       c_df <- other_inp_col_list[[x["id"]]]
       n <- nrow(c_df)
-      if(!checkLoadedTable(inp_df, c("c", "c", rep("n", n-2)), x["title"])) {
+      if (!checkLoadedTable(inp_df, c("c", "c", rep("n", n - 2)), x["title"])) {
         removeModal()
         return()
       }
       isolate(b_df <- params[[x["table"]]])
-      if(is.null(b_df)) return()
+      if (is.null(b_df))
+        return()
       nreq <- nrow(b_df)
       nload <- nrow(inp_df)
-      if(nreq != nload) {
+      if (nreq != nload) {
         show_alert_nrow_error(nreq, nload)
         return()
       }
-      cval <- c_df$col[! c_df$col %in% c("label", "unit")]
+      cval <- c_df$col[!c_df$col %in% c("label", "unit")]
       b_df[cval] <- inp_df[c(3:n)]
       params[[x["table"]]] <- b_df
       removeModal()
@@ -1556,10 +1861,12 @@ server <- function(input, output, session) {
   })
   
   ## save scalar data
-  apply(other_inp_df, 1, function(x){
+  apply(other_inp_df, 1, function(x) {
     output[[paste0("download_", x["id"])]] <- downloadHandler(
-      filename = function(){paste0(x["id"], "_table.csv")}, 
-      content = function(fname){
+      filename = function() {
+        paste0(x["id"], "_table.csv")
+      },
+      content = function(fname) {
         isolate(b_df <- params[[x["table"]]])
         c_df <- other_inp_col_list[[x["id"]]]
         data_df <- b_df[c_df$col]
@@ -1574,25 +1881,35 @@ server <- function(input, output, session) {
   ###################################################################
   
   get_zero_columns <- function(df) {
-    if(is.null(df)) return(NULL)
-    if(length(unlist(df)) == 0) return(NULL)
+    if (is.null(df))
+      return(NULL)
+    if (length(unlist(df)) == 0)
+      return(NULL)
     cols <- which(colSums(df != 0) == 0)
-    if(length(cols) == 0) return("-")
+    if (length(cols) == 0)
+      return("-")
     colnames(df[cols])
   }
   
-  get_zero_vars <- function(df, f = "field", v = "value", suffix = "") {
-    if(is.null(df)) return(NULL)
+  get_zero_vars <- function(df,
+                            f = "field",
+                            v = "value",
+                            suffix = "") {
+    if (is.null(df))
+      return(NULL)
     vars <- unlist(df[f][df[v] == 0])
-    if(length(vars) == 0) return(NULL)
+    if (length(vars) == 0)
+      return(NULL)
     return(paste0(vars, suffix))
   }
   
   get_empty_map <- function(df) {
-    if(is.null(df)) return(NULL)
+    if (is.null(df))
+      return(NULL)
     df[is.na(df)] <- ""
     df <- df[df$file == "", ]
-    if(nrow(df) == 0) return(NULL)
+    if (nrow(df) == 0)
+      return(NULL)
     vars <- paste0(df$group, "-", df$label)
     return(vars)
   }
@@ -1600,39 +1917,41 @@ server <- function(input, output, session) {
   output$out_summary <- renderUI({
     p <- get_parameter()
     plc <- c("landcover_df", "landuse_df", "livelihood_df")
-    ps <- c("bio_lc_df", "bio_ll_df", "eco_lc_df", "eco_ll_df", "soc_ll_df")
+    ps <- c("bio_lc_df",
+            "bio_ll_df",
+            "eco_lc_df",
+            "eco_ll_df",
+            "soc_ll_df")
     
     tagList(
-      fluidRow(column(3, HTML("")), 
-               column(6, tags$b("Number of IDs"))),
-      apply(params_file_df[params_file_df$var %in% plc,], 1, function(d){
-        fluidRow(
-          column(3, tags$b(d["label"])),
-          column(6, HTML(nrow(p[[d["var"]]])))
-        )
+      fluidRow(column(3, HTML("")), column(6, tags$b("Number of IDs"))),
+      apply(params_file_df[params_file_df$var %in% plc, ], 1, function(d) {
+        fluidRow(column(3, tags$b(d["label"])), column(6, HTML(nrow(p[[d["var"]]]))))
       }),
       hr(),
-      fluidRow(column(3, tags$b("Spatial data")), 
-               column(6, HTML("<b>Empty maps: </b>", 
-                              paste(get_empty_map(p[["map_data_df"]]), collapse = ", ")
-                              ))),
+      fluidRow(column(3, tags$b("Spatial data")), column(6, HTML(
+        "<b>Empty maps: </b>", paste(get_empty_map(p[["map_data_df"]]), collapse = ", ")
+      ))),
       hr(),
-      fluidRow(column(3, HTML("")), 
-               column(6, tags$b("Parameters with zero value"))),
-      apply(params_file_df[params_file_df$var %in% ps,], 1, function(d){
-        fluidRow(
-          column(3, tags$b(d["label"])),
-          column(6, HTML(paste(get_zero_columns(p[[d["var"]]]), collapse = ", ")))
-        )
+      fluidRow(column(3, HTML("")), column(
+        6, tags$b("Parameters with zero value")
+      )),
+      apply(params_file_df[params_file_df$var %in% ps, ], 1, function(d) {
+        fluidRow(column(3, tags$b(d["label"])), column(6, HTML(
+          paste(get_zero_columns(p[[d["var"]]]), collapse = ", ")
+        )))
       }),
-      fluidRow(column(3, tags$b("Others")), 
-               column(6, HTML(
-        paste(c(get_zero_vars(p[["demographics_df"]]), 
-                get_zero_vars(p[["disaster_df"]]),
-                get_zero_vars(p[["converter_df"]]),
-                get_zero_vars(p[["agentprop_df"]], v = "value1", suffix = "_v1"),
-                get_zero_vars(p[["agentprop_df"]], v = "value2", suffix = "_v2")), 
-              collapse = ", ")
+      fluidRow(column(3, tags$b("Others")), column(6, HTML(
+        paste(
+          c(
+            get_zero_vars(p[["demographics_df"]]),
+            get_zero_vars(p[["disaster_df"]]),
+            get_zero_vars(p[["converter_df"]]),
+            get_zero_vars(p[["agentprop_df"]], v = "value1", suffix = "_v1"),
+            get_zero_vars(p[["agentprop_df"]], v = "value2", suffix = "_v2")
+          ),
+          collapse = ", "
+        )
       ))),
       hr()
     )
@@ -1649,16 +1968,16 @@ server <- function(input, output, session) {
     content = function(fname) {
       p <- get_parameter()
       setwd(tempdir())
-      apply(params_file_df, 1, function(d){
+      apply(params_file_df, 1, function(d) {
         df <- p[[d["var"]]]
         write.csv(df, d["file"], row.names = F, na = "")
       })
       write_stars(p$initlc_map, "initlc.tif")
-      lapply(p$map_list, function(m){
+      lapply(p$map_list, function(m) {
         suppressWarnings(write_stars(m, names(m)))
       })
       fs <- c(params_file_df$file, "initlc.tif", names(p$map_list))
-      zip::zip(zipfile=fname, files=fs)
+      zip::zip(zipfile = fname, files = fs)
     },
     contentType = "application/zip"
   )
@@ -1690,21 +2009,29 @@ server <- function(input, output, session) {
   })
   
   isRunSimulation <- reactiveVal(FALSE)
-
+  
   observe({
-    if(isRunSimulation()) {
+    if (isRunSimulation()) {
       print(paste("Run:", input$simtime, "iteration"))
-      v_out$fallow_output <- runRFallow(get_parameter(),
-                                        input$simtime,
-                                        update_progress_iteration,
-                                        update_progress_detail)
+      v_out$fallow_output <- runRFallow(
+        get_parameter(),
+        input$simtime,
+        update_progress_iteration,
+        update_progress_detail
+      )
       isRunSimulation(F)
       sendSweetAlert(
         session = session,
         title = "Simulation finished!",
-        text =  div(p("Number of iteration: ", input$simtime, "simulation years"),
-                    p("Elapsed time: ", format(v_out$fallow_output$time_elapsed))),
-        type = "success", html = TRUE
+        text =  div(
+          p("Number of iteration: ", input$simtime, "simulation years"),
+          p(
+            "Elapsed time: ",
+            format(v_out$fallow_output$time_elapsed)
+          )
+        ),
+        type = "success",
+        html = TRUE
       )
       
       enable("run_button")
@@ -1717,44 +2044,65 @@ server <- function(input, output, session) {
   })
   
   update_progress_iteration <- function(value, desc = NULL) {
-    updateProgressBar(session, "progress_iteration", value, 
-                      total = input$simtime, title = desc)
+    updateProgressBar(
+      session,
+      "progress_iteration",
+      value,
+      total = input$simtime,
+      title = desc
+    )
   }
   
   update_progress_detail <- function(value, desc = NULL) {
     updateProgressBar(session, "progress_detail", value, title = desc)
   }
-
+  
   ################################################
   ## OUTPUT SELECTOR #############################
   ################################################
-  out_lc_label <- "Land cover area" 
+  out_lc_label <- "Land cover area"
   
-  output$output_selector <- renderUI({ 
-
-      div(class = "greenbox", style = "padding-bottom: 0px;", 
+  output$output_selector <- renderUI({
+    div(class = "greenbox",
+        style = "padding-bottom: 0px;",
         fluidRow(
-          column(4,
+          column(
+            4,
             pickerInput(
-            inputId = "output_select", label = "Output", inline = F, width = "fit",
-            choices = list(out_lc_label,
-                           Total = sort(out_df$label[out_df$table == "out_val_df"]),
-                           Livelihood = sort(out_df$label[out_df$table != "out_val_df"]),
-                           Maps = sort(out_map_df$label) )
-            )),
-          # column(2, pickerInput(inputId = "output_width", label = "Width", 
-                                # choices = list("50%", "100%"))
+              inputId = "output_select",
+              label = "Output",
+              inline = F,
+              width = "fit",
+              choices = list(
+                out_lc_label,
+                Total = sort(out_df$label[out_df$table == "out_val_df"]),
+                Livelihood = sort(out_df$label[out_df$table != "out_val_df"]),
+                Maps = sort(out_map_df$label)
+              )
+            )
+          ),
+          # column(2, pickerInput(inputId = "output_width", label = "Width",
+          # choices = list("50%", "100%"))
           # ),
-          column(4, actionButton("add_output_button", "Display output", 
-                                 icon = icon("laptop-medical"),
-                                 size=NULL, style = "width:100%")),
+          column(
+            4,
+            actionButton(
+              "add_output_button",
+              "Display output",
+              icon = icon("laptop-medical"),
+              size = NULL,
+              style = "width:100%"
+            )
+          ),
           # column(4, div(style = "text-align:center;  background:#38562440;
-          #               padding:10px; border-radius:8px; width:100%; margin:auto;", 
+          #               padding:10px; border-radius:8px; width:100%; margin:auto;",
           #               tags$b("Save output data"),
           #               downloadButton("download_output_table", "Download")))
-          column(4, downloadButton("download_output_table", "Save output data", style = "width:100%"))
-        )
-      )
+          column(
+            4,
+            downloadButton("download_output_table", "Save output data", style = "width:100%")
+          )
+        ))
   })
   
   output$download_output_table <- downloadHandler(
@@ -1764,9 +2112,18 @@ server <- function(input, output, session) {
     content = function(fname) {
       setwd(tempdir())
       d_out <- v_out$fallow_output
-      write.csv(d_out$out_val_df, "out_val.csv", row.names = F, na = "")
-      write.csv(d_out$out_lc_df, "out_lc.csv", row.names = F, na = "")
-      write.csv(d_out$out_ll_df, "out_ll.csv", row.names = F, na = "")
+      write.csv(d_out$out_val_df,
+                "out_val.csv",
+                row.names = F,
+                na = "")
+      write.csv(d_out$out_lc_df,
+                "out_lc.csv",
+                row.names = F,
+                na = "")
+      write.csv(d_out$out_ll_df,
+                "out_ll.csv",
+                row.names = F,
+                na = "")
       files = c("out_lc.csv", "out_ll.csv", "out_val.csv")
       zip::zip(zipfile = fname, files = files)
     },
@@ -1780,33 +2137,38 @@ server <- function(input, output, session) {
   observeEvent(input$add_output_button, {
     id <- paste0("out_", as.integer(runif(1) * 10^6))
     ids <- out_box_list()
-    if(is.null(ids)) {
+    if (is.null(ids)) {
       ids <- c(id)
     } else {
       ids <- c(ids, id)
     }
     ui_out <- NULL
-    if(input$output_select %in% c(out_df$label, out_lc_label)) {
-      odf <- out_df[out_df$label == input$output_select,]
-      if(nrow(odf) == 0) odf <- list(unit = "ha", desc = "Total land cover area")
-      ui_out <- generate_output_table_box(id, input$output_select, 
-                                          odf$unit, odf$desc)
-    } else if(input$output_select %in% out_map_df$label) {
+    if (input$output_select %in% c(out_df$label, out_lc_label)) {
+      odf <- out_df[out_df$label == input$output_select, ]
+      if (nrow(odf) == 0)
+        odf <- list(unit = "ha", desc = "Total land cover area")
+      ui_out <- generate_output_table_box(id, input$output_select, odf$unit, odf$desc)
+    } else if (input$output_select %in% out_map_df$label) {
       ui_out <- generate_output_map_box(id, input$output_select)
     }
-    if(!is.null(ui_out)) {
-      insertUI(selector = "#add_output", where = "afterBegin", ui = column(width = 6, ui_out))
+    if (!is.null(ui_out)) {
+      insertUI(
+        selector = "#add_output",
+        where = "afterBegin",
+        ui = column(width = 6, ui_out)
+      )
       out_box_list(ids)
     }
   })
   
   observe({
     ids <- out_box_list()
-    if(is.null(ids)) return()
-    lapply(ids, function(id){
+    if (is.null(ids))
+      return()
+    lapply(ids, function(id) {
       observeEvent(input[[id]]$visible, {
-        if(!input[[id]]$visible) {
-          removeUI(selector = paste0("div:has(> #", id,")"))
+        if (!input[[id]]$visible) {
+          removeUI(selector = paste0("div:has(> #", id, ")"))
           ids <- ids[ids != id]
           out_box_list(ids)
         }
@@ -1818,13 +2180,17 @@ server <- function(input, output, session) {
   ########### Output table box ####################################
   #################################################################
   
-  msg_nodata <- function(title) paste("No data on", title)
+  msg_nodata <- function(title)
+    paste("No data on", title)
   
-  generate_output_table_box <- function(id, title, unit = "", desc = "") {
+  generate_output_table_box <- function(id,
+                                        title,
+                                        unit = "",
+                                        desc = "") {
     table_id <- paste0("table_out", id)
     #prepare the table
     d_out <- v_out$fallow_output
-    if(is.null(d_out)) {
+    if (is.null(d_out)) {
       showNotification(msg_nodata(title), type = "error")
       return()
     }
@@ -1832,10 +2198,10 @@ server <- function(input, output, session) {
     field_id_label <- NULL
     field_id <- NULL
     is_single_value <- F
-    if(title == out_lc_label) {
+    if (title == out_lc_label) {
       show(paste0("plotdetailgroup", id))
       d_lc <- d_out[["out_lc_df"]]
-      if(nrow(d_lc) == 0) {
+      if (nrow(d_lc) == 0) {
         showNotification(msg_nodata(title), type = "error")
         return()
       }
@@ -1843,7 +2209,10 @@ server <- function(input, output, session) {
       field_id <- "lc_short"
       field_id_label <- "Land cover"
       idvar <- c("lc_id", "lu_id", "lc_short", "lu_group", "lu_short")
-      df <- reshape(d_lc, timevar = "iteration", idvar = idvar, direction = "wide")
+      df <- reshape(d_lc,
+                    timevar = "iteration",
+                    idvar = idvar,
+                    direction = "wide")
       names(df) <- c(idvar, iteration_label)
       
     } else if (title %in% out_df$label[out_df$table == "out_val_df"]) {
@@ -1857,7 +2226,7 @@ server <- function(input, output, session) {
     } else {
       disable(paste0("plotdetailgroup", id))
       d_ll <- d_out[["out_ll_df"]]
-      if(nrow(d_ll) == 0) {
+      if (nrow(d_ll) == 0) {
         showNotification(msg_nodata(title), type = "error")
         return()
       }
@@ -1865,18 +2234,21 @@ server <- function(input, output, session) {
       field_id <- "ll_short"
       field_id_label <- "Livelihood"
       var <- out_df$var[out_df$label == title]
-      if(!var %in% colnames(d_ll)) {
+      if (!var %in% colnames(d_ll)) {
         showNotification(msg_nodata(title), type = "error")
         return()
       }
       idvar <- c("ll_id", "ll_short", "lu_group")
       df <- d_ll[c(idvar, "iteration", var)]
-      df <- reshape(df, timevar = "iteration", idvar = idvar, direction = "wide")
+      df <- reshape(df,
+                    timevar = "iteration",
+                    idvar = idvar,
+                    direction = "wide")
       names(df) <- c(idvar, iteration_label)
     }
     df[is.na(df)] <- 0 #replace NA with zero
-    df <- df[rowSums(df[iteration_label] != 0, na.rm = T) > 0,] #remove zero row
-    if(nrow(df) == 0) {
+    df <- df[rowSums(df[iteration_label] != 0, na.rm = T) > 0, ] #remove zero row
+    if (nrow(df) == 0) {
       showNotification(msg_nodata(title), type = "error")
       return()
     }
@@ -1889,29 +2261,43 @@ server <- function(input, output, session) {
       d <- data_view()
       n <- ncol(d)
       out_column <- data.frame(
-        title= c(field_id_label, iteration_label),
-        type= c("text", rep("numeric", n-1)),
-        align = c("left", rep("right", n-1))
+        title = c(field_id_label, iteration_label),
+        type = c("text", rep("numeric", n - 1)),
+        align = c("left", rep("right", n - 1))
       )
-      excelTable(data = d, columns = out_column, editable = F,
-                 allowDeleteColumn = F, allowRenameColumn = F, allowInsertRow = F,
-                 allowDeleteRow = F, tableHeight = "800", rowDrag = F,
-                 csvFileName = paste0(title, "_table"), includeHeadersOnDownload = T,
-                 tableOverflow = T, tableWidth = "100%")
+      excelTable(
+        data = d,
+        columns = out_column,
+        editable = F,
+        allowDeleteColumn = F,
+        allowRenameColumn = F,
+        allowInsertRow = F,
+        allowDeleteRow = F,
+        tableHeight = "800",
+        rowDrag = F,
+        csvFileName = paste0(title, "_table"),
+        includeHeadersOnDownload = T,
+        tableOverflow = T,
+        tableWidth = "100%"
+      )
     })
     
     data_view <- reactiveVal(df)
     filter_id <- paste0("plotfilter", id)
     
     observeEvent(input[[paste0("plotgroup", id)]], {
-      if(is_single_value) return()
+      if (is_single_value)
+        return()
       updatePrettyCheckbox(session, paste0("plotdetailgroup", id), value = F)
-      col_fields <- c(field_id, iteration_label) 
-
+      col_fields <- c(field_id, iteration_label)
+      
       d <- df[col_fields]
-      if(input[[paste0("plotgroup", id)]]) {
+      if (input[[paste0("plotgroup", id)]]) {
         d <- df[c("lu_group", iteration_label)]
-        d <- aggregate(d[iteration_label], by = list(d$lu_group), FUN = sum, na.rm = T)
+        d <- aggregate(d[iteration_label],
+                       by = list(d$lu_group),
+                       FUN = sum,
+                       na.rm = T)
         colnames(d)[1] <- "lu_group"
       }
       updatePickerInput(session, inputId = filter_id, choices = d[[1]])
@@ -1919,49 +2305,64 @@ server <- function(input, output, session) {
     })
     
     observeEvent(input[[paste0("plotdetailgroup", id)]], {
-      if(is_single_value) return()
-      if(title != out_lc_label) return()
+      if (is_single_value)
+        return()
+      if (title != out_lc_label)
+        return()
       updatePrettyCheckbox(session, paste0("plotgroup", id), value = F)
       d <- df[c(field_id, iteration_label)]
-      if(input[[paste0("plotdetailgroup", id)]]) {
+      if (input[[paste0("plotdetailgroup", id)]]) {
         d <- df[c("lu_short", iteration_label)]
-        d <- aggregate(d[iteration_label], by = list(d$lu_short), FUN = sum, na.rm = T)
+        d <- aggregate(d[iteration_label],
+                       by = list(d$lu_short),
+                       FUN = sum,
+                       na.rm = T)
         colnames(d)[1] <- "lu_short"
-        c_df <- merge(d, params$landuse_df[c("lu_short", "lu_id")], 
-                      by = "lu_short", all.x = T)
-        c_df <- c_df[order(c_df$lu_id),]
+        c_df <- merge(d,
+                      params$landuse_df[c("lu_short", "lu_id")],
+                      by = "lu_short",
+                      all.x = T)
+        c_df <- c_df[order(c_df$lu_id), ]
         c_df$lu_id <- NULL
         d <- c_df
       }
       updatePickerInput(session, inputId = filter_id, choices = d[[1]])
       data_view(d)
     })
-
+    
     observeEvent(input[[filter_id]], {
       isolate(g <- input[[paste0("plotgroup", id)]])
       isolate(dg <- input[[paste0("plotdetailgroup", id)]])
-      if(g) {
+      if (g) {
         d <- df[c("lu_group", iteration_label)]
-        d <- aggregate(d[iteration_label], by = list(d$lu_group), FUN = sum, na.rm = T)
+        d <- aggregate(d[iteration_label],
+                       by = list(d$lu_group),
+                       FUN = sum,
+                       na.rm = T)
         colnames(d)[1] <- "lu_group"
-      } else if(dg) {
+      } else if (dg) {
         d <- df[c("lu_short", iteration_label)]
-        d <- aggregate(d[iteration_label], by = list(d$lu_short), FUN = sum, na.rm = T)
+        d <- aggregate(d[iteration_label],
+                       by = list(d$lu_short),
+                       FUN = sum,
+                       na.rm = T)
         colnames(d)[1] <- "lu_short"
       } else {
         d <- df[c(field_id, iteration_label)]
       }
-      if(!is.null(input[[filter_id]])) {
-        d <- d[d[[1]] %in% input[[filter_id]],]
+      if (!is.null(input[[filter_id]])) {
+        d <- d[d[[1]] %in% input[[filter_id]], ]
       }
       data_view(d)
     })
     
     output[[paste0("plot_out", id)]] <- renderPlot({
       d <- data_view()
-      if(is.null(d)) return()
-      if(nrow(d) == 0) return()
-      if(is_single_value) {
+      if (is.null(d))
+        return()
+      if (nrow(d) == 0)
+        return()
+      if (is_single_value) {
         d_plot <- d[iteration_label]
         color <- color_list[1]
       } else {
@@ -1971,47 +2372,87 @@ server <- function(input, output, session) {
         color <- color_list[1:nrow(dff)]
         
         idfield <- colnames(d[1])
-        if(idfield == "lc_short") {
-          c_df <- merge(d[1], params$landcover_df[c("lc_short", "color")], 
-                        by = "lc_short", all.x = T, sort = F)
+        if (idfield == "lc_short") {
+          c_df <- merge(
+            d[1],
+            params$landcover_df[c("lc_short", "color")],
+            by = "lc_short",
+            all.x = T,
+            sort = F
+          )
           color <- c_df$color
-        } else if(idfield == "lu_short") {
-          c_df <- merge(d[1], params$landuse_df[c("lu_short", "color")], 
-                        by = "lu_short", all.x = T, sort = F)
+        } else if (idfield == "lu_short") {
+          c_df <- merge(
+            d[1],
+            params$landuse_df[c("lu_short", "color")],
+            by = "lu_short",
+            all.x = T,
+            sort = F
+          )
           color <- c_df$color
         }
       }
-      ex <- 10^(round(log(max(d_plot), 10))-1)
+      ex <- 10^(round(log(max(d_plot), 10)) - 1)
       ex_f <- ""
-      if(ex > 100) {
-        d_plot <- d_plot/ex
-        ex_f <- paste0("[", format(ex, big.mark=",", scientific = F), "]")
+      if (ex > 100) {
+        d_plot <- d_plot / ex
+        ex_f <- paste0("[", format(ex, big.mark = ",", scientific = F), "]")
       }
-      par(mar=c(4, 4, 1, 1))
+      par(mar = c(4, 4, 1, 1))
       ptype <- input[[paste0("plottype_out", id)]]
-      if(length(iteration_label) == 1) ptype <- "Line"
-      if(is.null(ptype)) ptype <- "Stacked area"
-      if(ptype == "Stacked area" & !is_single_value) {
+      if (length(iteration_label) == 1)
+        ptype <- "Line"
+      if (is.null(ptype))
+        ptype <- "Stacked area"
+      if (ptype == "Stacked area" & !is_single_value) {
         #TODO: ERROr if only one year iteration!
-        areaplot(d_plot, xlab = "Years", ylab = paste(unit, ex_f), col = color, legend = T,
-                 args.legend=list(x="topleft", cex=0.8, bty = "o", ncol = 2,
-                                  border = "white", bg = "#FFFFFF60", 
-                                  box.lwd = 0, inset=.05))
+        areaplot(
+          d_plot,
+          xlab = "Years",
+          ylab = paste(unit, ex_f),
+          col = color,
+          legend = T,
+          args.legend = list(
+            x = "topleft",
+            cex = 0.8,
+            bty = "o",
+            ncol = 2,
+            border = "white",
+            bg = "#FFFFFF60",
+            box.lwd = 0,
+            inset = .05
+          )
+        )
       } else {
-        matplot(d_plot, type = "b", pch=16, lty = 1,  col = color,
-                xlab = "Years", ylab = paste("Unit", ex_f))
-        if(!is_single_value)
-          legend("topleft", legend = unlist(d[1]), fill= color, ncol = 2, 
-                 cex=0.8, border = "white", bg = "#FFFFFF60", box.lwd = 0,
-                 inset=.05)
+        matplot(
+          d_plot,
+          type = "b",
+          pch = 16,
+          lty = 1,
+          col = color,
+          xlab = "Years",
+          ylab = paste("Unit", ex_f)
+        )
+        if (!is_single_value)
+          legend(
+            "topleft",
+            legend = unlist(d[1]),
+            fill = color,
+            ncol = 2,
+            cex = 0.8,
+            border = "white",
+            bg = "#FFFFFF60",
+            box.lwd = 0,
+            inset = .05
+          )
       }
     }, height = function() {
-      session$clientData[[paste0("output_plot_out", id, "_width")]]*0.7
-    }) 
+      session$clientData[[paste0("output_plot_out", id, "_width")]] * 0.7
+    })
     
     output[[paste0("download_out", id)]] <- downloadHandler(
       filename = function() {
-        paste(paste0("data-", title, "-"), Sys.Date(), ".csv", sep="")
+        paste(paste0("data-", title, "-"), Sys.Date(), ".csv", sep = "")
       },
       content = function(file) {
         d <- data_view()
@@ -2019,121 +2460,158 @@ server <- function(input, output, session) {
       }
     )
     
-    box(id = id, title = title, closable = T, collapsible = T, maximizable = T,
-        width = 12,
-        dropdownMenu = boxDropdown(icon = icon("download"),
-           boxDropdownItem(
-             downloadLink(paste0("download_out", id), "Download data (.csv)"))
-        ), 
-        sidebar = boxSidebar(
-          id = paste0("plotsidebar", id),
-          background = COLOR_DARK,
-          prettyRadioButtons(
-            inputId = paste0("plottype_out", id), label = "Plot type", 
-            choices = c("Stacked area", "Line"), selected = "Stacked area",
-            icon = icon("check"), inline = TRUE, status = "warning", animation = "jelly"
-          ),
-          
-          tags$b("Group by"),
-          
-          prettyCheckbox(
-            inputId = paste0("plotgroup", id), label = "Land use type", 
-            icon = icon("check"), status = "warning", animation = "jelly"
-          ),
-          prettyCheckbox(
-            inputId = paste0("plotdetailgroup", id), label = "Detailed land use", 
-            icon = icon("check"), status = "warning", animation = "jelly"
-          ),
-          pickerInput(
-            inputId = paste0("plotfilter", id),
-            label = "Filter", 
-            choices = NULL,
-            multiple = TRUE
-          )
+    box(
+      id = id,
+      title = title,
+      closable = T,
+      collapsible = T,
+      maximizable = T,
+      width = 12,
+      dropdownMenu = boxDropdown(icon = icon("download"), boxDropdownItem(
+        downloadLink(paste0("download_out", id), "Download data (.csv)")
+      )),
+      sidebar = boxSidebar(
+        id = paste0("plotsidebar", id),
+        background = COLOR_DARK,
+        prettyRadioButtons(
+          inputId = paste0("plottype_out", id),
+          label = "Plot type",
+          choices = c("Stacked area", "Line"),
+          selected = "Stacked area",
+          icon = icon("check"),
+          inline = TRUE,
+          status = "warning",
+          animation = "jelly"
         ),
-        tagList(
-          HTML(desc),
-          tabsetPanel(
-            tabPanel("Plot", icon = icon("chart-simple"), 
-                     plotOutput(paste0("plot_out",id), height = "auto")),
-            tabPanel("Table", icon = icon("table-list"), 
-                     p("Unit:", unit), excelOutput(table_id, height = "100%"))
-          )
+        
+        tags$b("Group by"),
+        
+        prettyCheckbox(
+          inputId = paste0("plotgroup", id),
+          label = "Land use type",
+          icon = icon("check"),
+          status = "warning",
+          animation = "jelly"
+        ),
+        prettyCheckbox(
+          inputId = paste0("plotdetailgroup", id),
+          label = "Detailed land use",
+          icon = icon("check"),
+          status = "warning",
+          animation = "jelly"
+        ),
+        pickerInput(
+          inputId = paste0("plotfilter", id),
+          label = "Filter",
+          choices = NULL,
+          multiple = TRUE
         )
+      ),
+      tagList(HTML(desc), tabsetPanel(
+        tabPanel(
+          "Plot",
+          icon = icon("chart-simple"),
+          plotOutput(paste0("plot_out", id), height = "auto")
+        ),
+        tabPanel(
+          "Table",
+          icon = icon("table-list"),
+          p("Unit:", unit),
+          excelOutput(table_id, height = "100%")
+        )
+      ))
     )
   }
-
+  
   ########### Output Map Box #######################
   
   generate_output_map_box <- function(id, title) {
     m_id <- out_map_df$id[out_map_df$label == title]
     d_out <- v_out$fallow_output
-    if(is.null(d_out)) return()
+    if (is.null(d_out))
+      return()
     m_list <- d_out[["out_map"]]
-    m <- m_list[[m_id]] 
-
-    output[[paste0("map_out",id)]] <- renderPlot({
+    m <- m_list[[m_id]]
+    
+    output[[paste0("map_out", id)]] <- renderPlot({
       t <- input[[paste0("slidertime", id)]]
       t <- min(t, length(m))
       map_color <- NULL
-      if(title == "Land cover") {
+      if (title == "Land cover") {
         map_color <- params$landcover_df[c("lc_id", "color")]
         map_color$id <- map_color$lc_id
         map_color <- map_color[order(map_color$id), ]
-      } else if(title == "Land use") {
+      } else if (title == "Land use") {
         map_color <- params$landuse_df[c("lu_id", "color")]
         map_color$id <- map_color$lu_id
         map_color <- map_color[order(map_color$id), ]
       }
-      if(!is.null(map_color)) {
-        map_color <- map_color[map_color$color != "",]
-        map_color <- map_color[!is.na(map_color$color),]
-        if(nrow(map_color) == 0) map_color <- NULL
+      if (!is.null(map_color)) {
+        map_color <- map_color[map_color$color != "", ]
+        map_color <- map_color[!is.na(map_color$color), ]
+        if (nrow(map_color) == 0)
+          map_color <- NULL
       }
-      if(is.null(map_color)) {
+      if (is.null(map_color)) {
         pal <- get_map_color(m[t])
-        suppressWarnings(suppressMessages(
-          plot(m[t], main = NULL, col = pal, breaks = 'equal')))
-      } else { 
-        plot(m[t], col = map_color$color, breaks = c(-1, map_color$id), main = NULL)
+        suppressWarnings(suppressMessages(plot(
+          m[t],
+          main = NULL,
+          col = pal,
+          breaks = 'equal'
+        )))
+      } else {
+        plot(
+          m[t],
+          col = map_color$color,
+          breaks = c(-1, map_color$id),
+          main = NULL
+        )
       }
     }, height = function() {
-      session$clientData[[paste0("output_map_out", id, "_width")]]*0.7
-    }) 
+      session$clientData[[paste0("output_map_out", id, "_width")]] * 0.7
+    })
     
     output[[paste0("download_tif_out", id)]] <- downloadHandler(
       filename = function() {
-        paste0("map_out_", title,".zip")
+        paste0("map_out_", title, ".zip")
       },
       content = function(fname) {
         setwd(tempdir())
         files <- c()
-        for(i in 1:length(m)){
+        for (i in 1:length(m)) {
           f <- paste0(title, "-", i, ".tif")
           files <- c(files, f)
           suppressWarnings(write_stars(m[i], f))
         }
-        zip::zip(zipfile=fname, files=files)
+        zip::zip(zipfile = fname, files = files)
       },
       contentType = "application/zip"
     )
-
-    box(id = id, title = title, closable = T, collapsible = T, maximizable = T,
-        width = 12,
-        dropdownMenu = 
-          boxDropdown(
-            icon = icon("download"),
-            boxDropdownItem(downloadLink(paste0("download_tif_out", id),
-                                         "Download the maps"))
-        ),
-        plotOutput(paste0("map_out",id), height = "auto"),
-        sliderInput(paste0("slidertime",id), "Simulation year", 
-                    min = 1, max = input$simtime, 
-                    value = input$simtime, step = 1)
+    
+    box(
+      id = id,
+      title = title,
+      closable = T,
+      collapsible = T,
+      maximizable = T,
+      width = 12,
+      dropdownMenu =
+        boxDropdown(icon = icon("download"), boxDropdownItem(
+          downloadLink(paste0("download_tif_out", id), "Download the maps")
+        )),
+      plotOutput(paste0("map_out", id), height = "auto"),
+      sliderInput(
+        paste0("slidertime", id),
+        "Simulation year",
+        min = 1,
+        max = input$simtime,
+        value = input$simtime,
+        step = 1
+      )
     )
   }
   
   
-
+  
 }
-
