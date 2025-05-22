@@ -810,9 +810,11 @@ runRFallow <- function(params,
       transp_f <- getSpatialW("transportation", ll_id) * min_d_ll 
       
       min_m <- !area_map
-      if(!is.null(zdplot_map_list[[ll_id]]))
+
+      if(length(zdplot_map_list) > 0 && !is.null(zdplot_map_list[[ll_id]])) {
         # min_m[[1]] <- pmin(map_data$zset[[1]], zdplot_map_list[[ll_id]][[1]], na.rm = TRUE)
         min_m[[1]] <- pmin(settlement_map[[1]], zdplot_map_list[[ll_id]][[1]], na.rm = TRUE)
+      }
       maint_f <- getSpatialW("maintenance", ll_id) * min_m 
       steep_f <- getSpatialW("steepness", ll_id) * zslope_map
       floorb_f <- getSpatialW("floorbiomass", ll_id) * zfb_map
@@ -1072,6 +1074,7 @@ runRFallow <- function(params,
     
     #UPDATING HUMAN POPULATION
     
+
     #report totpop
     totpop <- totpop * (1 + getVarValue(demographics_df, "annualgrowthrate")) *
       (1 - disasterimpactonhuman/100)
@@ -1249,6 +1252,7 @@ runRFallow <- function(params,
     } 
    
     if(is.null(out_val_df)) {
+      
       out_val_df <- data.frame(
         iteration = time,
         totsecconsumptionpercapita = totsecconsumptionpercapita,
